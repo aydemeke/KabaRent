@@ -11,7 +11,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: 'rgba(0,0,0,0.55)' }}
+      style={{ background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
@@ -20,10 +20,10 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
       >
 
         {/* Image with identity overlay */}
-        <div style={{ position: 'relative', height: '160px', borderRadius: '20px 20px 0 0', overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ position: 'relative', height: '200px', borderRadius: '20px 20px 0 0', overflow: 'hidden', flexShrink: 0, background: '#eeeeed' }}>
           {kaba.imageUrl
-            ? <img src={kaba.imageUrl} alt={kaba.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
-            : <div style={{ width: '100%', height: '100%', background: '#E5E7EB' }} />
+            ? <img src={kaba.imageUrl} alt={kaba.name} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            : <div style={{ width: '100%', height: '100%' }} />
           }
           {/* Dark gradient overlay at the bottom of the image */}
           <div style={{

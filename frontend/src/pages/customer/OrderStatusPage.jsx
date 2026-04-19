@@ -4,6 +4,15 @@ import { getById } from '../../api/orders'
 import StatusBadge from '../../components/StatusBadge'
 import Spinner from '../../components/Spinner'
 
+function Row({ label, value }) {
+  return (
+    <div className="flex flex-col">
+      <span className="ds-label mb-0.5">{label}</span>
+      <span className="font-inter font-medium text-on-surface text-sm">{value}</span>
+    </div>
+  )
+}
+
 export default function OrderStatusPage() {
   const { id } = useParams()
   const [order, setOrder] = useState(null)
@@ -19,9 +28,9 @@ export default function OrderStatusPage() {
 
   if (loading) return <Spinner />
   if (error) return (
-    <div className="text-center py-16">
-      <p className="text-red-500 mb-4">{error}</p>
-      <Link to="/" className="text-indigo-600 underline text-sm">Back to browse</Link>
+    <div className="text-center py-20">
+      <p className="font-inter text-sm mb-4" style={{ color: '#560000' }}>{error}</p>
+      <Link to="/" className="ds-btn-text">Back to browse</Link>
     </div>
   )
 
@@ -32,58 +41,54 @@ export default function OrderStatusPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Confirmation banner */}
-      <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6 flex items-start gap-3">
-        <span className="text-2xl">✓</span>
+      <div
+        className="rounded-2xl px-6 py-5 mb-6 flex items-start gap-4"
+        style={{ background: 'rgba(1,45,29,0.08)' }}
+      >
+        <span
+          className="font-inter font-bold text-white flex-shrink-0 flex items-center justify-center"
+          style={{ width: 36, height: 36, borderRadius: '50%', background: '#012d1d', fontSize: '16px' }}
+        >
+          ✓
+        </span>
         <div>
-          <h1 className="font-bold text-green-800 text-lg">Order #{order.id} placed!</h1>
-          <p className="text-green-700 text-sm mt-0.5">
-            Your order is <strong>{order.status}</strong>. The team will confirm it shortly.
+          <h1 className="font-jakarta font-bold text-primary" style={{ fontSize: '1.1rem', marginBottom: '2px' }}>
+            Order #{order.id} placed!
+          </h1>
+          <p className="font-inter text-sm text-on-surface-variant">
+            Your order is <strong className="text-on-surface">{order.status}</strong>. The team will confirm it shortly.
           </p>
         </div>
       </div>
 
-      {/* Order summary card */}
-      <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+      {/* Order summary */}
+      <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)' }}>
 
         {/* Header */}
-        <div className="px-5 py-4 flex items-center justify-between">
-          <span className="font-semibold text-gray-800">Order #{order.id}</span>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+          <span className="font-jakarta font-semibold text-on-surface">Order #{order.id}</span>
           <StatusBadge status={order.status} />
         </div>
 
-        {/* Dates */}
-        <div className="px-5 py-4 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-500 block">Event date</span>
-            <span className="font-medium text-gray-800">{order.eventDate}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block">Return date</span>
-            <span className="font-medium text-gray-800">{order.returnDate}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block">Duration</span>
-            <span className="font-medium text-gray-800">{rentalDays} day{rentalDays !== 1 ? 's' : ''}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block">Placed on</span>
-            <span className="font-medium text-gray-800">
-              {new Date(order.createdAt).toLocaleDateString()}
-            </span>
-          </div>
+        {/* Dates grid */}
+        <div className="px-6 py-5 grid grid-cols-2 gap-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+          <Row label="Event date"  value={order.eventDate} />
+          <Row label="Return date" value={order.returnDate} />
+          <Row label="Duration"    value={`${rentalDays} day${rentalDays !== 1 ? 's' : ''}`} />
+          <Row label="Placed on"   value={new Date(order.createdAt).toLocaleDateString()} />
         </div>
 
         {/* Items */}
-        <div className="px-5 py-4">
-          <h3 className="text-sm font-semibold text-gray-600 mb-3">Items</h3>
+        <div className="px-6 py-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+          <p className="ds-label mb-3">Items</p>
           <div className="space-y-2">
             {order.items.map(item => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-gray-800">
+              <div key={item.id} className="flex justify-between font-inter text-sm">
+                <span className="text-on-surface">
                   {item.kabaName}
-                  <span className="text-gray-400 ml-1">× {item.quantity}</span>
+                  <span className="text-on-surface-variant ml-1">× {item.quantity}</span>
                 </span>
-                <span className="text-gray-700 font-medium">
+                <span className="font-medium text-on-surface">
                   ₪{(item.unitPrice * rentalDays * item.quantity).toFixed(2)}
                 </span>
               </div>
@@ -92,30 +97,28 @@ export default function OrderStatusPage() {
         </div>
 
         {/* Total */}
-        <div className="px-5 py-4 flex justify-between items-center">
-          <span className="font-semibold text-gray-700">Total</span>
-          <span className="text-indigo-700 font-bold text-lg">₪{order.totalPrice}</span>
+        <div className="px-6 py-4 flex justify-between items-center" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+          <span className="font-inter font-semibold text-on-surface-variant text-sm">Total</span>
+          <span className="font-jakarta font-black text-primary" style={{ fontSize: '1.35rem' }}>₪{order.totalPrice}</span>
         </div>
 
         {/* Customer */}
-        <div className="px-5 py-4 text-sm">
-          <h3 className="font-semibold text-gray-600 mb-2">Customer</h3>
-          <p className="text-gray-800">{order.customer.fullName}</p>
-          <p className="text-gray-500">{order.customer.phone} · {order.customer.email}</p>
+        <div className="px-6 py-5">
+          <p className="ds-label mb-2">Customer</p>
+          <p className="font-inter font-medium text-on-surface text-sm">{order.customer.fullName}</p>
+          <p className="font-inter text-on-surface-variant text-sm">{order.customer.phone} · {order.customer.email}</p>
         </div>
 
         {order.notes && (
-          <div className="px-5 py-4 text-sm">
-            <span className="text-gray-500">Notes: </span>
-            <span className="text-gray-700">{order.notes}</span>
+          <div className="px-6 pb-5 font-inter text-sm" style={{ borderTop: '1px solid rgba(193,200,194,0.25)', paddingTop: '16px' }}>
+            <span className="text-on-surface-variant">Notes: </span>
+            <span className="text-on-surface">{order.notes}</span>
           </div>
         )}
       </div>
 
-      <div className="mt-6 text-center">
-        <Link to="/" className="text-indigo-600 text-sm underline">
-          ← Back to browse
-        </Link>
+      <div className="mt-8 text-center">
+        <Link to="/" className="ds-btn-text">← Back to browse</Link>
       </div>
     </div>
   )

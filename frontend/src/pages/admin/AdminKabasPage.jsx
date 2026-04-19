@@ -25,74 +25,52 @@ const KABA_IMAGES = [
 function ColorSwatch({ colors, size = 16 }) {
   return (
     <span
-      className="inline-block rounded-sm border border-gray-300 flex-shrink-0"
+      className="inline-block rounded-sm flex-shrink-0"
       style={{
-        width: size,
-        height: size,
+        width: size, height: size,
         background: `linear-gradient(to right, ${colors[0]} 50%, ${colors[1]} 50%)`,
+        border: '1px solid rgba(0,0,0,0.10)',
       }}
     />
   )
 }
 
-function SelectField({ label, value, onChange, options, required }) {
-  return (
-    <div>
-      <label className="block text-sm text-gray-600 mb-1">{label}</label>
-      <select
-        value={value}
-        onChange={onChange}
-        required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
-      >
-        <option value="">— select —</option>
-        {options.map(o => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-    </div>
-  )
+function FieldLabel({ children }) {
+  return <label className="ds-label block mb-1.5">{children}</label>
 }
 
 function ColorSelectField({ value, onChange }) {
   return (
     <div>
-      <label className="block text-sm text-gray-600 mb-1">Color *</label>
+      <FieldLabel>Color *</FieldLabel>
       <div className="relative">
-        <select
-          value={value}
-          onChange={onChange}
-          required
-          className="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white appearance-none"
-        >
+        <select value={value} onChange={onChange} required className="ds-select pl-10">
           <option value="">— select color —</option>
           {COLOR_OPTIONS.map(o => (
             <option key={o.label} value={o.label}>{o.label}</option>
           ))}
         </select>
-        {/* Swatch preview inside the select box */}
-        <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
           {value
-            ? <ColorSwatch colors={COLOR_OPTIONS.find(o => o.label === value)?.colors ?? ['#ccc', '#ccc']} />
-            : <span className="inline-block w-4 h-4 rounded-sm border border-gray-300 bg-gray-100" />
+            ? <ColorSwatch colors={COLOR_OPTIONS.find(o => o.label === value)?.colors ?? ['#ccc','#ccc']} />
+            : <span className="inline-block w-4 h-4 rounded-sm bg-surface-container" />
           }
         </span>
       </div>
-      {/* Visual legend */}
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-2.5 flex flex-wrap gap-2">
         {COLOR_OPTIONS.map(o => (
           <button
             key={o.label}
             type="button"
             onClick={() => onChange({ target: { value: o.label } })}
             title={o.label}
-            className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-inter text-xs font-medium transition-all ${
               value === o.label
-                ? 'border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'
+                ? 'bg-primary text-white'
+                : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
             }`}
           >
-            <ColorSwatch colors={o.colors} size={14} />
+            <ColorSwatch colors={o.colors} size={12} />
             {o.label}
           </button>
         ))}
@@ -104,7 +82,7 @@ function ColorSelectField({ value, onChange }) {
 function ImagePickerField({ value, onChange }) {
   return (
     <div>
-      <label className="block text-sm text-gray-600 mb-2">Image</label>
+      <FieldLabel>Image</FieldLabel>
       <div className="grid grid-cols-4 gap-2">
         {KABA_IMAGES.map(img => {
           const path = `/kaba-pictures/${img.file}`
@@ -114,23 +92,18 @@ function ImagePickerField({ value, onChange }) {
               key={img.file}
               type="button"
               onClick={() => onChange(selected ? '' : path)}
-              className={`rounded-lg overflow-hidden border-2 transition-all focus:outline-none ${
-                selected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-gray-400'
+              className={`rounded-xl overflow-hidden transition-all focus:outline-none ${
+                selected ? 'ring-2 ring-primary' : 'opacity-60 hover:opacity-100'
               }`}
+              style={{ border: selected ? '2px solid #012d1d' : '2px solid transparent' }}
             >
-              <img
-                src={path}
-                alt={img.label}
-                className="w-full h-16 object-cover"
-              />
-              <p className="text-[10px] text-center py-0.5 text-gray-500 bg-white">{img.label}</p>
+              <img src={path} alt={img.label} className="w-full h-16 object-cover" />
+              <p className="text-[10px] text-center py-0.5 font-inter text-on-surface-variant bg-surface-container-low">{img.label}</p>
             </button>
           )
         })}
       </div>
-      {value && (
-        <p className="mt-1 text-xs text-gray-400 truncate">Selected: {value}</p>
-      )}
+      {value && <p className="mt-1.5 text-xs font-inter text-on-surface-variant truncate">Selected: {value}</p>}
     </div>
   )
 }
@@ -147,58 +120,31 @@ export default function AdminKabasPage() {
   const [error, setError] = useState('')
 
   function load() {
-    return getAll({ active: undefined })
-      .then(setKabas)
-      .finally(() => setLoading(false))
+    return getAll({ active: undefined }).then(setKabas).finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [])
 
-  function openCreate() {
-    setForm(empty)
-    setEditId(null)
-    setError('')
-    setModal('create')
-  }
-
+  function openCreate() { setForm(empty); setEditId(null); setError(''); setModal('create') }
   function openEdit(kaba) {
-    setForm({
-      name: kaba.name,
-      description: kaba.description || '',
-      category: kaba.category || '',
-      size: kaba.size || '',
-      pricePerDay: kaba.pricePerDay,
-      quantity: kaba.quantity,
-      imageUrl: kaba.imageUrl || '',
-    })
-    setEditId(kaba.id)
-    setError('')
-    setModal('edit')
+    setForm({ name: kaba.name, description: kaba.description || '', category: kaba.category || '',
+      size: kaba.size || '', pricePerDay: kaba.pricePerDay, quantity: kaba.quantity, imageUrl: kaba.imageUrl || '' })
+    setEditId(kaba.id); setError(''); setModal('edit')
   }
 
   async function handleSave(e) {
-    e.preventDefault()
-    setSaving(true)
-    setError('')
+    e.preventDefault(); setSaving(true); setError('')
     try {
-      if (modal === 'create') {
-        await create(form)
-      } else {
-        await update(editId, form)
-      }
-      setModal(null)
-      load()
+      modal === 'create' ? await create(form) : await update(editId, form)
+      setModal(null); load()
     } catch (err) {
       setError(err.response?.data?.error || 'Save failed.')
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
   async function handleDeactivate(id) {
     if (!confirm('Deactivate this Kaba?')) return
-    await softDelete(id)
-    load()
+    await softDelete(id); load()
   }
 
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
@@ -206,54 +152,56 @@ export default function AdminKabasPage() {
   if (loading) return <Spinner />
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Kaba Inventory</h1>
-        <button
-          onClick={openCreate}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
-        >
-          + Add Kaba
-        </button>
+        <h1 className="font-jakarta font-bold text-on-surface" style={{ fontSize: '1.75rem', letterSpacing: '-0.01em' }}>
+          Kaba Inventory
+        </h1>
+        <button onClick={openCreate} className="ds-btn-primary">+ Add Kaba</button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="ds-panel">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="px-4 py-3 text-left">Color</th>
-              <th className="px-4 py-3 text-left">Category</th>
-              <th className="px-4 py-3 text-left">Size</th>
-              <th className="px-4 py-3 text-left">Price/day</th>
-              <th className="px-4 py-3 text-left">Qty</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+          <thead><tr className="ds-table-head">
+            <th>Color</th><th>Category</th><th>Size</th>
+            <th>Price/day</th><th>Qty</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
             {kabas.map(k => {
               const swatch = COLOR_OPTIONS.find(o => o.label === k.name)
               return (
-                <tr key={k.id} className={`hover:bg-gray-50 ${!k.active ? 'opacity-50' : ''}`}>
+                <tr key={k.id} className={`hover:bg-surface-container-low transition-colors ${!k.active ? 'opacity-40' : ''}`}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      {swatch && <ColorSwatch colors={swatch.colors} size={14} />}
-                      <span className="font-medium text-gray-800">{k.name}</span>
+                      {swatch && <ColorSwatch colors={swatch.colors} size={13} />}
+                      <span className="font-inter font-medium text-on-surface">{k.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{k.category || '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{k.size || '—'}</td>
-                  <td className="px-4 py-3 text-indigo-700 font-medium">₪{k.pricePerDay}</td>
-                  <td className="px-4 py-3 text-gray-600">{k.quantity}</td>
+                  <td className="px-4 py-3 font-inter text-on-surface-variant">{k.category || '—'}</td>
+                  <td className="px-4 py-3 font-inter text-on-surface-variant">{k.size || '—'}</td>
+                  <td className="px-4 py-3 font-inter font-semibold text-primary">₪{k.pricePerDay}</td>
+                  <td className="px-4 py-3 font-inter text-on-surface-variant">{k.quantity}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${k.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span
+                      className="inline-block px-2.5 py-0.5 rounded-full text-xs font-inter font-semibold"
+                      style={k.active
+                        ? { background: 'rgba(1,45,29,0.10)', color: '#012d1d' }
+                        : { background: 'rgba(65,72,68,0.08)', color: '#414844' }
+                      }
+                    >
                       {k.active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 flex gap-2">
-                    <button onClick={() => openEdit(k)} className="text-indigo-600 hover:underline text-xs">Edit</button>
+                  <td className="px-4 py-3 flex gap-3">
+                    <button onClick={() => openEdit(k)} className="ds-btn-text text-xs">Edit</button>
                     {k.active && (
-                      <button onClick={() => handleDeactivate(k.id)} className="text-red-500 hover:underline text-xs">Deactivate</button>
+                      <button
+                        onClick={() => handleDeactivate(k.id)}
+                        className="font-inter text-xs font-medium hover:underline"
+                        style={{ color: '#560000' }}
+                      >
+                        Deactivate
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -264,77 +212,57 @@ export default function AdminKabasPage() {
       </div>
 
       {modal && (
-        <Modal
-          title={modal === 'create' ? 'Add new Kaba' : 'Edit Kaba'}
-          onClose={() => setModal(null)}
-        >
+        <Modal title={modal === 'create' ? 'Add new Kaba' : 'Edit Kaba'} onClose={() => setModal(null)}>
           <form onSubmit={handleSave} className="space-y-4">
             <ColorSelectField value={form.name} onChange={set('name')} />
 
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Description</label>
+              <FieldLabel>Description</FieldLabel>
               <textarea
                 value={form.description}
                 onChange={set('description')}
                 rows={2}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <SelectField
-                label="Category"
-                value={form.category}
-                onChange={set('category')}
-                options={CATEGORY_OPTIONS}
-              />
-              <SelectField
-                label="Size"
-                value={form.size}
-                onChange={set('size')}
-                options={SIZE_OPTIONS}
+                className="ds-input resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Price per day (₪) *</label>
-                <input
-                  type="number"
-                  value={form.pricePerDay}
-                  onChange={set('pricePerDay')}
-                  required min="0.01" step="0.01"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
+                <FieldLabel>Category</FieldLabel>
+                <select value={form.category} onChange={set('category')} className="ds-select">
+                  <option value="">— select —</option>
+                  {CATEGORY_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Quantity *</label>
-                <input
-                  type="number"
-                  value={form.quantity}
-                  onChange={set('quantity')}
-                  required min="1"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
+                <FieldLabel>Size</FieldLabel>
+                <select value={form.size} onChange={set('size')} className="ds-select">
+                  <option value="">— select —</option>
+                  {SIZE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
               </div>
             </div>
 
-            <ImagePickerField
-              value={form.imageUrl}
-              onChange={path => setForm(f => ({ ...f, imageUrl: path }))}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <FieldLabel>Price per day (₪) *</FieldLabel>
+                <input type="number" value={form.pricePerDay} onChange={set('pricePerDay')}
+                  required min="0.01" step="0.01" className="ds-input" />
+              </div>
+              <div>
+                <FieldLabel>Quantity *</FieldLabel>
+                <input type="number" value={form.quantity} onChange={set('quantity')}
+                  required min="1" className="ds-input" />
+              </div>
+            </div>
 
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+            <ImagePickerField value={form.imageUrl} onChange={path => setForm(f => ({ ...f, imageUrl: path }))} />
+
+            {error && <p className="font-inter text-sm" style={{ color: '#560000' }}>{error}</p>}
 
             <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={() => setModal(null)} className="text-sm text-gray-500 hover:underline">
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-              >
+              <button type="button" onClick={() => setModal(null)} className="ds-btn-text">Cancel</button>
+              <button type="submit" disabled={saving} className="ds-btn-primary">
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>

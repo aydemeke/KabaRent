@@ -24,39 +24,29 @@ export default function AdminPaymentsPage() {
     return Promise.all([getAllPayments(), getAllOrders()])
       .then(([p, o]) => {
         setPayments(p)
-        // Build per-order paid totals from COMPLETED payments
         const paidByOrder = {}
         p.filter(pay => pay.status === 'COMPLETED').forEach(pay => {
           paidByOrder[pay.orderId] = (paidByOrder[pay.orderId] || 0) + Number(pay.amount)
         })
-        const unpaid = o.filter(o =>
-          o.status !== 'CANCELLED' &&
-          (paidByOrder[o.id] || 0) < Number(o.totalPrice)
-        )
-        setUnpaidOrders(unpaid)
+        setUnpaidOrders(o.filter(o =>
+          o.status !== 'CANCELLED' && (paidByOrder[o.id] || 0) < Number(o.totalPrice)
+        ))
       })
       .finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [])
 
-  // Fetch balance detail whenever the selected order changes
   useEffect(() => {
     if (!orderId) { setBalance(null); setAmount(''); return }
-    setLoadingBalance(true)
-    setBalance(null)
-    setAmountError('')
+    setLoadingBalance(true); setBalance(null); setAmountError('')
     getBalance(orderId)
-      .then(b => {
-        setBalance(b)
-        setAmount(Number(b.remainingBalance).toFixed(2))
-      })
+      .then(b => { setBalance(b); setAmount(Number(b.remainingBalance).toFixed(2)) })
       .finally(() => setLoadingBalance(false))
   }, [orderId])
 
   function handleAmountChange(val) {
-    setAmount(val)
-    setAmountError('')
+    setAmount(val); setAmountError('')
     if (balance && val && Number(val) > Number(balance.remainingBalance)) {
       setAmountError(`Amount cannot exceed remaining balance of ₪${Number(balance.remainingBalance).toFixed(2)}`)
     }
@@ -69,23 +59,15 @@ export default function AdminPaymentsPage() {
       setAmountError(`Amount cannot exceed remaining balance of ₪${Number(balance.remainingBalance).toFixed(2)}`)
       return
     }
-    setSaving(true)
-    setError('')
-    setSuccess('')
+    setSaving(true); setError(''); setSuccess('')
     try {
       await recordPayment({ orderId: Number(orderId), amount: Number(amount), method })
       setSuccess(`Payment of ₪${amount} recorded for order #${orderId}.`)
-      setOrderId('')
-      setAmount('')
-      setBalance(null)
-      setMethod('CASH')
-      setAmountError('')
+      setOrderId(''); setAmount(''); setBalance(null); setMethod('CASH'); setAmountError('')
       load()
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to record payment.')
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
   if (loading) return <Spinner />
@@ -93,22 +75,25 @@ export default function AdminPaymentsPage() {
   const noUnpaid = unpaidOrders.length === 0
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Payments</h1>
+    <div className="space-y-8">
+      <h1 className="font-jakarta font-bold text-on-surface" style={{ fontSize: '1.75rem', letterSpacing: '-0.01em' }}>
+        Payments
+      </h1>
 
       {/* Record payment form */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h2 className="font-semibold text-gray-700 mb-4">Record a Payment</h2>
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)' }}>
+        <h2 className="font-jakarta font-semibold text-on-surface mb-5">Record a Payment</h2>
         <form onSubmit={handleRecord} className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-40">
-            <label className="block text-sm text-gray-600 mb-1">Order</label>
+
+          <div className="flex-1 min-w-48">
+            <label className="ds-label block mb-1.5">Order</label>
             <select
               value={orderId}
               onChange={e => { setOrderId(e.target.value); setError('') }}
               required
               disabled={noUnpaid}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              style={noUnpaid ? { backgroundColor: '#F3F4F6' } : undefined}
+              className="ds-select"
+              style={noUnpaid ? { background: '#e2e2e2', color: '#414844' } : undefined}
             >
               {noUnpaid
                 ? <option value="" disabled>No unpaid orders</option>
@@ -123,11 +108,12 @@ export default function AdminPaymentsPage() {
               }
             </select>
             {noUnpaid && (
-              <p className="mt-1 text-xs text-gray-400">No active unpaid orders at this time</p>
+              <p className="mt-1.5 font-inter text-xs text-on-surface-variant">No active unpaid orders at this time</p>
             )}
           </div>
-          <div className="w-40">
-            <label className="block text-sm text-gray-600 mb-1">Amount (₪)</label>
+
+          <div style={{ width: '9rem' }}>
+            <label className="ds-label block mb-1.5">Amount (₪)</label>
             <input
               type="number"
               value={amount}
@@ -137,31 +123,30 @@ export default function AdminPaymentsPage() {
               required
               disabled={noUnpaid}
               onChange={e => handleAmountChange(e.target.value)}
-              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${amountError ? 'border-red-400' : 'border-gray-300'}`}
+              className="ds-input"
+              style={amountError ? { borderColor: 'rgba(86,0,0,0.40)', background: 'rgba(86,0,0,0.04)' } : undefined}
             />
             {amountError && (
-              <p className="mt-1 text-xs text-red-500">{amountError}</p>
+              <p className="mt-1.5 font-inter text-xs" style={{ color: '#560000' }}>{amountError}</p>
             )}
           </div>
-          <div className="w-44">
-            <label className="block text-sm text-gray-600 mb-1">Method</label>
-            <select
-              value={method}
-              onChange={e => setMethod(e.target.value)}
-              disabled={noUnpaid}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            >
+
+          <div style={{ width: '11rem' }}>
+            <label className="ds-label block mb-1.5">Method</label>
+            <select value={method} onChange={e => setMethod(e.target.value)} disabled={noUnpaid} className="ds-select">
               {METHODS.map(m => <option key={m} value={m}>{m.replace('_', ' ')}</option>)}
             </select>
           </div>
+
           <button
             type="submit"
             disabled={saving || noUnpaid || !!amountError}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition ${
+            className={`font-inter font-semibold text-sm rounded-xl px-6 py-2.5 transition-all duration-150 ${
               noUnpaid || amountError
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-green-700 text-white hover:bg-green-800 disabled:opacity-50'
+                ? 'bg-surface-container-highest text-on-surface-variant cursor-not-allowed'
+                : 'ds-btn-primary hover:scale-95 active:scale-90'
             }`}
+            style={!noUnpaid && !amountError ? { background: 'linear-gradient(135deg, #012d1d, #1b4332)' } : undefined}
           >
             {saving ? 'Saving…' : 'Record Payment'}
           </button>
@@ -169,65 +154,61 @@ export default function AdminPaymentsPage() {
 
         {/* Balance summary */}
         {orderId && (
-          <div className="mt-4">
+          <div className="mt-5">
             {loadingBalance ? (
-              <p className="text-xs text-gray-400">Loading balance…</p>
+              <p className="font-inter text-xs text-on-surface-variant">Loading balance…</p>
             ) : balance && (
-              <div className="flex gap-6 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm">
+              <div className="flex flex-wrap gap-6 rounded-xl px-5 py-4 font-inter text-sm" style={{ background: '#f3f4f3' }}>
                 <div>
-                  <span className="text-gray-500">Order total:</span>
-                  <span className="ml-1 font-semibold text-gray-800">₪{Number(balance.totalPrice).toFixed(2)}</span>
+                  <span className="text-on-surface-variant">Order total:</span>
+                  <span className="ml-1.5 font-semibold text-on-surface">₪{Number(balance.totalPrice).toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Already paid:</span>
-                  <span className="ml-1 font-semibold text-green-700">₪{Number(balance.totalPaid).toFixed(2)}</span>
+                  <span className="text-on-surface-variant">Already paid:</span>
+                  <span className="ml-1.5 font-semibold text-primary">₪{Number(balance.totalPaid).toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Remaining:</span>
-                  <span className="ml-1 font-bold text-indigo-700">₪{Number(balance.remainingBalance).toFixed(2)}</span>
+                  <span className="text-on-surface-variant">Remaining:</span>
+                  <span className="ml-1.5 font-bold text-on-surface">₪{Number(balance.remainingBalance).toFixed(2)}</span>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {error   && <p className="mt-3 text-sm text-red-600">{error}</p>}
-        {success && <p className="mt-3 text-sm text-green-600">{success}</p>}
+        {error   && <p className="mt-4 font-inter text-sm" style={{ color: '#560000' }}>{error}</p>}
+        {success && <p className="mt-4 font-inter text-sm text-primary font-medium">{success}</p>}
       </div>
 
       {/* Payments table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-800">Payment History ({payments.length})</h2>
+      <div className="ds-panel">
+        <div className="px-6 py-4" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+          <h2 className="font-jakarta font-semibold text-on-surface">Payment History ({payments.length})</h2>
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="px-4 py-3 text-left">ID</th>
-              <th className="px-4 py-3 text-left">Order</th>
-              <th className="px-4 py-3 text-left">Amount</th>
-              <th className="px-4 py-3 text-left">Method</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Paid at</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+          <thead><tr className="ds-table-head">
+            <th>ID</th><th>Order</th><th>Amount</th><th>Method</th><th>Status</th><th>Paid at</th>
+          </tr></thead>
+          <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
             {payments.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center text-gray-400 py-10">No payments recorded yet.</td>
+                <td colSpan={6} className="text-center font-inter text-on-surface-variant py-12">No payments recorded yet.</td>
               </tr>
             ) : payments.map(p => (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-500">#{p.id}</td>
-                <td className="px-4 py-3 text-gray-700">#{p.orderId}</td>
-                <td className="px-4 py-3 font-medium text-gray-800">₪{p.amount}</td>
-                <td className="px-4 py-3 text-gray-600">{p.method.replace('_', ' ')}</td>
+              <tr key={p.id} className="hover:bg-surface-container-low transition-colors">
+                <td className="px-4 py-3 font-inter text-on-surface-variant text-xs">#{p.id}</td>
+                <td className="px-4 py-3 font-inter text-on-surface-variant">#{p.orderId}</td>
+                <td className="px-4 py-3 font-inter font-semibold text-on-surface">₪{p.amount}</td>
+                <td className="px-4 py-3 font-inter text-on-surface-variant">{p.method.replace('_', ' ')}</td>
                 <td className="px-4 py-3">
-                  <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded">
+                  <span
+                    className="inline-block px-2.5 py-0.5 rounded-full text-xs font-inter font-semibold"
+                    style={{ background: 'rgba(1,45,29,0.10)', color: '#012d1d' }}
+                  >
                     {p.status}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-500">
+                <td className="px-4 py-3 font-inter text-on-surface-variant text-xs">
                   {p.paidAt ? new Date(p.paidAt).toLocaleString() : '—'}
                 </td>
               </tr>

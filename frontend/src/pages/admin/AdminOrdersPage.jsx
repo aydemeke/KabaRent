@@ -5,14 +5,13 @@ import Spinner from '../../components/Spinner'
 
 const STATUSES = ['', 'PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED']
 
-// Returns the valid next actions for a given status
 function nextActions(status) {
   switch (status) {
-    case 'PENDING':   return [{ label: 'Confirm', next: 'CONFIRMED', style: 'text-blue-600' },
-                              { label: 'Cancel',  next: 'CANCELLED', style: 'text-red-500' }]
-    case 'CONFIRMED': return [{ label: 'Activate', next: 'ACTIVE',     style: 'text-green-600' },
-                              { label: 'Cancel',   next: 'CANCELLED',  style: 'text-red-500' }]
-    case 'ACTIVE':    return [{ label: 'Complete', next: 'COMPLETED',  style: 'text-gray-600' }]
+    case 'PENDING':   return [{ label: 'Confirm',  next: 'CONFIRMED', color: '#012d1d' },
+                              { label: 'Cancel',   next: 'CANCELLED', color: '#560000' }]
+    case 'CONFIRMED': return [{ label: 'Activate', next: 'ACTIVE',    color: '#012d1d' },
+                              { label: 'Cancel',   next: 'CANCELLED', color: '#560000' }]
+    case 'ACTIVE':    return [{ label: 'Complete', next: 'COMPLETED', color: '#414844' }]
     default:          return []
   }
 }
@@ -25,9 +24,7 @@ export default function AdminOrdersPage() {
 
   function load() {
     setLoading(true)
-    getAll(statusFilter || undefined)
-      .then(setOrders)
-      .finally(() => setLoading(false))
+    getAll(statusFilter || undefined).then(setOrders).finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [statusFilter])
@@ -37,19 +34,20 @@ export default function AdminOrdersPage() {
     try {
       const updated = await updateStatus(orderId, nextStatus)
       setOrders(prev => prev.map(o => o.id === orderId ? updated : o))
-    } finally {
-      setUpdating(null)
-    }
+    } finally { setUpdating(null) }
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Orders</h1>
+        <h1 className="font-jakarta font-bold text-on-surface" style={{ fontSize: '1.75rem', letterSpacing: '-0.01em' }}>
+          Orders
+        </h1>
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="ds-select"
+          style={{ width: 'auto', minWidth: '160px' }}
         >
           {STATUSES.map(s => (
             <option key={s} value={s}>{s || 'All statuses'}</option>
@@ -58,49 +56,40 @@ export default function AdminOrdersPage() {
       </div>
 
       {loading ? <Spinner /> : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+        <div className="ds-panel overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-              <tr>
-                <th className="px-4 py-3 text-left">ID</th>
-                <th className="px-4 py-3 text-left">Customer</th>
-                <th className="px-4 py-3 text-left">Event date</th>
-                <th className="px-4 py-3 text-left">Return date</th>
-                <th className="px-4 py-3 text-left">Items</th>
-                <th className="px-4 py-3 text-left">Total</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+            <thead><tr className="ds-table-head">
+              <th>ID</th><th>Customer</th><th>Event date</th><th>Return date</th>
+              <th>Items</th><th>Total</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center text-gray-400 py-10">No orders found.</td>
+                  <td colSpan={8} className="text-center font-inter text-on-surface-variant py-12">No orders found.</td>
                 </tr>
               ) : orders.map(o => (
-                <tr key={o.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">#{o.id}</td>
+                <tr key={o.id} className="hover:bg-surface-container-low transition-colors">
+                  <td className="px-4 py-3 font-inter text-on-surface-variant text-xs">#{o.id}</td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-800">{o.customer.fullName}</div>
-                    <div className="text-gray-400 text-xs">{o.customer.phone}</div>
+                    <div className="font-inter font-medium text-on-surface">{o.customer.fullName}</div>
+                    <div className="font-inter text-xs text-on-surface-variant">{o.customer.phone}</div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{o.eventDate}</td>
-                  <td className="px-4 py-3 text-gray-600">{o.returnDate}</td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {o.items.map(i => (
-                      <div key={i.id}>{i.kabaName} ×{i.quantity}</div>
-                    ))}
+                  <td className="px-4 py-3 font-inter text-on-surface-variant">{o.eventDate}</td>
+                  <td className="px-4 py-3 font-inter text-on-surface-variant">{o.returnDate}</td>
+                  <td className="px-4 py-3 font-inter text-on-surface-variant">
+                    {o.items.map(i => <div key={i.id}>{i.kabaName} ×{i.quantity}</div>)}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-800">₪{o.totalPrice}</td>
+                  <td className="px-4 py-3 font-inter font-semibold text-on-surface">₪{o.totalPrice}</td>
                   <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
-                      {nextActions(o.status).map(({ label, next, style }) => (
+                      {nextActions(o.status).map(({ label, next, color }) => (
                         <button
                           key={next}
                           disabled={updating === o.id}
                           onClick={() => handleAction(o.id, next)}
-                          className={`text-xs font-medium hover:underline disabled:opacity-40 ${style}`}
+                          className="font-inter text-xs font-semibold hover:underline disabled:opacity-40 text-left"
+                          style={{ color }}
                         >
                           {updating === o.id ? '…' : label}
                         </button>

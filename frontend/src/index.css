@@ -1,3 +1,186 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-primary:                #012d1d;
+  --color-secondary:              #705d00;
+  --color-tertiary:               #560000;
+  --color-secondary-container:    #fcd400;
+  --color-surface:                #f9f9f8;
+  --color-surface-container-low:  #f3f4f3;
+  --color-surface-container:      #eeeeed;
+  --color-surface-container-high: #e8e8e7;
+  --color-surface-container-highest: #e2e2e2;
+  --color-surface-container-lowest:  #ffffff;
+  --color-on-surface:             #1a1c1c;
+  --color-on-surface-variant:     #414844;
+  --color-outline-variant:        #c1c8c2;
+}
+
+html {
+  font-family: 'Inter', sans-serif;
+  color: #1a1c1c;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  background-image:
+    linear-gradient(rgba(249, 249, 248, 0.88), rgba(249, 249, 248, 0.88)),
+    url('/kaba-background.webp');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1a1c1c;
+}
+
+button, input, select, textarea, label, a {
+  font-family: 'Inter', sans-serif;
+}
+
+@layer components {
+  /* Input fields */
+  .ds-input {
+    width: 100%;
+    background-color: #f3f4f3;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: #1a1c1c;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .ds-input:focus {
+    outline: none;
+    background-color: #ffffff;
+    border-color: rgba(1, 45, 29, 0.30);
+  }
+
+  /* Select dropdowns */
+  .ds-select {
+    width: 100%;
+    background-color: #f3f4f3;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: #1a1c1c;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    appearance: none;
+  }
+  .ds-select:focus {
+    outline: none;
+    background-color: #ffffff;
+    border-color: rgba(1, 45, 29, 0.30);
+  }
+  .ds-select:disabled {
+    background-color: #e2e2e2;
+    color: #414844;
+    cursor: not-allowed;
+  }
+
+  /* Primary button */
+  .ds-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1.5rem;
+    font-size: 0.875rem;
+    background: linear-gradient(135deg, #012d1d, #1b4332);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .ds-btn-primary:hover:not(:disabled) {
+    transform: scale(0.95);
+  }
+  .ds-btn-primary:active:not(:disabled) {
+    transform: scale(0.90);
+  }
+  .ds-btn-primary:disabled {
+    opacity: 0.50;
+    pointer-events: none;
+  }
+
+  /* Ghost button */
+  .ds-btn-ghost {
+    color: #012d1d;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border-radius: 999px;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid rgba(193, 200, 194, 0.4);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ds-btn-ghost:hover {
+    background-color: #f3f4f3;
+  }
+
+  /* Tertiary link button */
+  .ds-btn-text {
+    color: #012d1d;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration-color: #fcd400;
+  }
+  .ds-btn-text:hover {
+    text-decoration: underline;
+    text-decoration-color: #fcd400;
+    text-decoration-thickness: 2px;
+  }
+
+  /* Admin panel wrapper */
+  .ds-panel {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(26, 28, 28, 0.06);
+  }
+
+  /* Table head cells */
+  .ds-table-head th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: #414844;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #f3f4f3;
+  }
+
+  /* Muted section label */
+  .ds-label {
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: #414844;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}

@@ -1,17 +1,24 @@
 export default function Modal({ title, onClose, children }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-800">{title}</h2>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{ borderRadius: '2rem', boxShadow: '0 24px 48px rgba(1,45,29,0.18)', padding: '32px' }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-jakarta font-bold text-on-surface text-lg">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+            className="text-on-surface-variant hover:text-on-surface transition-colors text-2xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-low"
           >
             ×
           </button>
         </div>
-        <div className="px-5 py-4">{children}</div>
+        <div>{children}</div>
       </div>
     </div>
   )
