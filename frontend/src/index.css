@@ -27,9 +27,12 @@ html {
 
 body {
   min-height: 100vh;
+}
+
+.customer-bg {
   background-image:
-    linear-gradient(rgba(249, 249, 248, 0.88), rgba(249, 249, 248, 0.88)),
-    url('/kaba-background.webp');
+    linear-gradient(rgba(249, 249, 248, 0.85), rgba(249, 249, 248, 0.85)),
+    url('/kaba-rent-bg-1.png');
   background-size: cover;
   background-position: center top;
   background-attachment: fixed;
@@ -37,8 +40,9 @@ body {
 }
 
 @media (max-width: 768px) {
-  body {
+  .customer-bg {
     background-attachment: scroll;
+    background-position: center top;
   }
 }
 

@@ -40,12 +40,6 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link
-              to="/admin"
-              className="text-xs text-on-surface-variant hover:text-on-surface transition-colors opacity-60 hover:opacity-100"
-            >
-              Admin →
-            </Link>
             <Link to="/order/new" className={active('/order/new')}>הזמנה חדשה</Link>
           </>
         )}

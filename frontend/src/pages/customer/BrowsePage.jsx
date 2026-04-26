@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAll, getAvailable } from '../../api/kabas'
 import Spinner from '../../components/Spinner'
-import DateInput from '../../components/DateInput'
 import KabaDetailModal from '../../components/KabaDetailModal'
 
 const CATEGORY_HE = { Wedding: 'חתונה', Anniversary: 'יום נישואין', Other: 'אחר' }
+const CATEGORY_PILLS = ['הכל', 'חתונה', 'יום נישואין', 'אחר']
+const CATEGORY_FILTER = { 'הכל': null, 'חתונה': 'Wedding', 'יום נישואין': 'Anniversary', 'אחר': 'Other' }
 
 const COLOR_MAP = {
   'Black Gold':  ['#1a1a1a', '#C5A028'],
@@ -26,6 +27,21 @@ const COLOR_NAME_HE = {
 }
 
 const SIZE_HE = { Small: 'קטנה', Medium: 'בינונית', Large: 'גדולה' }
+
+const HOW_IT_WORKS = [
+  { title: 'בחרו קאבה',    icon: 'search'   },
+  { title: 'בחרו תאריך',   icon: 'calendar' },
+  { title: 'קבלו את ההזמנה', icon: 'check'  },
+]
+
+function StepIcon({ type }) {
+  const p = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#705d00', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  if (type === 'search')
+    return <svg {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  if (type === 'calendar')
+    return <svg {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  return <svg {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+}
 
 function ColorSwatch({ name }) {
   const colors = COLOR_MAP[name]
@@ -49,6 +65,8 @@ export default function BrowsePage() {
   const [returnDate, setReturnDate] = useState('')
   const [filtered, setFiltered] = useState(false)
   const [selectedKaba, setSelectedKaba] = useState(null)
+  const [activeCategory, setActiveCategory] = useState('הכל')
+  const [sortBy, setSortBy] = useState('price-asc')
 
   useEffect(() => {
     getAll().then(setKabas).finally(() => setLoading(false))
@@ -79,6 +97,17 @@ export default function BrowsePage() {
     navigate(`/order/new?${params}`)
   }
 
+  const catFilter = CATEGORY_FILTER[activeCategory]
+  const displayedKabas = kabas
+    .filter(k => !catFilter || k.category === catFilter)
+    .sort((a, b) => {
+      if (sortBy === 'price-asc')  return Number(a.pricePerDay) - Number(b.pricePerDay)
+      if (sortBy === 'price-desc') return Number(b.pricePerDay) - Number(a.pricePerDay)
+      if (sortBy === 'name-asc')   return (COLOR_NAME_HE[a.name] ?? a.name).localeCompare(COLOR_NAME_HE[b.name] ?? b.name, 'he')
+      if (sortBy === 'newest')     return b.id - a.id
+      return 0
+    })
+
   return (
     <div>
       {selectedKaba && (
@@ -89,42 +118,44 @@ export default function BrowsePage() {
         />
       )}
 
-      {/* Hero */}
-      <div className="text-center py-10">
-        <p
+      {/* ─── SECTION 1: Hero ─── */}
+      <section style={{ textAlign: 'center', padding: '56px 32px 44px' }}>
+        <h1
           dir="rtl"
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            fontSize: '28px',
+            fontSize: '32px',
             fontWeight: 700,
             color: '#012d1d',
             letterSpacing: '-0.02em',
             marginBottom: '20px',
+            lineHeight: 1.2,
           }}
         >
           השכרת הלבשה מסורתית לאירועים
+        </h1>
+
+        {/* Gold divider */}
+        <div style={{ width: '48px', height: '3px', background: '#fcd400', borderRadius: '2px', margin: '0 auto 24px' }} />
+
+        {/* Subtitle */}
+        <p
+          dir="rtl"
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '18px',
+            color: '#414844',
+            maxWidth: '560px',
+            margin: '0 auto',
+            lineHeight: 1.6,
+          }}
+        >
+          קולקציה אוצרת של גלימות קאבה לאירועים בלתי נשכחים
         </p>
-        <div className="mx-auto" style={{ width: '48px', height: '3px', background: '#fcd400', borderRadius: '2px' }} />
-      </div>
+      </section>
 
-      {/* Search bar */}
-      <div className="mb-10">
-
-        {/* Label above bar */}
-        <p style={{
-          textAlign: 'right',
-          fontSize: '11px',
-          fontWeight: 600,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: '#717973',
-          marginBottom: '10px',
-          fontFamily: 'Inter, sans-serif',
-        }}>
-          חפש קאבות זמינות
-        </p>
-
-        {/* Pill bar — LTR flex, items ordered to produce RTL visual */}
+      {/* ─── SECTION 2: Search bar ─── */}
+      <section style={{ padding: '0 0 40px' }}>
         <form
           onSubmit={handleSearch}
           style={{
@@ -142,8 +173,7 @@ export default function BrowsePage() {
             gap: 0,
           }}
         >
-
-          {/* Button — leftmost (first in LTR DOM) */}
+          {/* Submit button — leftmost in LTR DOM */}
           <button
             type="submit"
             style={{
@@ -173,7 +203,7 @@ export default function BrowsePage() {
             </svg>
           </button>
 
-          {/* Return Date — second from left */}
+          {/* Return date field */}
           <div
             style={{
               flex: 1,
@@ -182,21 +212,10 @@ export default function BrowsePage() {
               flexDirection: 'column',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              cursor: 'pointer',
               position: 'relative',
             }}
-            onClick={() => {}}
           >
-            <p style={{
-              fontSize: '10px',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: '#717973',
-              marginBottom: '2px',
-              fontFamily: 'Inter, sans-serif',
-              lineHeight: 1,
-            }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך החזרה (אופציונלי)
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
@@ -217,10 +236,9 @@ export default function BrowsePage() {
             </div>
           </div>
 
-          {/* Divider — between the two date fields */}
           <div style={{ width: '1px', height: '28px', background: '#c1c8c2', opacity: 0.5, flexShrink: 0 }} />
 
-          {/* Event Date — rightmost (last in LTR DOM) */}
+          {/* Event date field */}
           <div
             style={{
               flex: 1,
@@ -229,20 +247,10 @@ export default function BrowsePage() {
               flexDirection: 'column',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              cursor: 'pointer',
               position: 'relative',
             }}
           >
-            <p style={{
-              fontSize: '10px',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: '#717973',
-              marginBottom: '2px',
-              fontFamily: 'Inter, sans-serif',
-              lineHeight: 1,
-            }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך אירוע
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
@@ -263,11 +271,10 @@ export default function BrowsePage() {
               />
             </div>
           </div>
-
         </form>
 
         {filtered && (
-          <div className="flex items-center justify-between mt-4 px-1">
+          <div style={{ maxWidth: '700px', margin: '12px auto 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
             <p dir="rtl" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#012d1d' }}>
               מציג {kabas.length} קאבות זמינות עבור {eventDate}
               {returnDate && returnDate !== eventDate ? ` ← ${returnDate}` : ''}
@@ -281,112 +288,219 @@ export default function BrowsePage() {
             </button>
           </div>
         )}
+      </section>
+
+      {/* ─── SECTION 3: Filter and Sort bar ─── */}
+      <div
+        dir="rtl"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
+        {/* Category pills — right (RTL start) */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {CATEGORY_PILLS.map(pill => (
+            <button
+              key={pill}
+              onClick={() => setActiveCategory(pill)}
+              style={{
+                padding: '8px 20px',
+                borderRadius: '999px',
+                fontSize: '14px',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                border: activeCategory === pill ? 'none' : '1px solid #c1c8c2',
+                background: activeCategory === pill ? '#012d1d' : 'transparent',
+                color: activeCategory === pill ? 'white' : '#1a1c1c',
+              }}
+            >
+              {pill}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort dropdown — left (RTL end) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#717973', whiteSpace: 'nowrap' }}>
+            מיון לפי:
+          </span>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '13px',
+              color: '#1a1c1c',
+              border: '1px solid #c1c8c2',
+              borderRadius: '8px',
+              padding: '6px 10px',
+              background: 'white',
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            <option value="price-asc">מחיר: נמוך לגבוה</option>
+            <option value="price-desc">מחיר: גבוה לנמוך</option>
+            <option value="name-asc">שם: א-ת</option>
+            <option value="newest">חדשים ביותר</option>
+          </select>
+        </div>
       </div>
 
-      {/* Kaba grid */}
+      {/* ─── SECTION 4: Product grid ─── */}
       {loading ? (
         <Spinner />
-      ) : kabas.length === 0 ? (
+      ) : displayedKabas.length === 0 ? (
         <div className="text-center py-24 font-inter text-on-surface-variant">
           אין קאבות זמינות לתאריך זה
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {kabas.map((kaba) => (
-            <div
-              key={kaba.id}
-              onClick={() => setSelectedKaba(kaba)}
-              className="group cursor-pointer transition-all duration-500"
-              style={{
-                background: '#ffffff',
-                borderRadius: '2.5rem',
-                overflow: 'hidden',
-                boxShadow: '0 2px 16px rgba(1,45,29,0.06)',
-              }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 12px 32px rgba(1,45,29,0.12)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 16px rgba(1,45,29,0.06)'}
-            >
-              {/* Image */}
-              <div style={{ position: 'relative', height: '220px', overflow: 'hidden', background: '#eeeeed' }}>
-                {kaba.imageUrl ? (
-                  <img
-                    src={kaba.imageUrl}
-                    alt={kaba.name}
-                    className="w-full h-full transition-transform duration-700 group-hover:scale-105"
-                    style={{ objectFit: 'contain' }}
-                  />
-                ) : (
-                  <div className="w-full h-full" />
-                )}
-                {/* Scrim */}
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(to top, rgba(1,45,29,0.40) 0%, transparent 55%)',
-                }} />
-                {/* Category badge */}
-                {kaba.category && (
-                  <span
-                    className="absolute top-5 right-5 font-inter font-semibold uppercase"
-                    style={{
-                      fontSize: '10px',
-                      letterSpacing: '0.1em',
-                      padding: '5px 13px',
-                      borderRadius: '999px',
-                      background: 'rgba(255,255,255,0.90)',
-                      backdropFilter: 'blur(8px)',
-                      color: '#012d1d',
-                    }}
-                  >
-                    {CATEGORY_HE[kaba.category] ?? kaba.category}
-                  </span>
-                )}
-              </div>
+          {displayedKabas.map((kaba) => {
+            const inStock = kaba.quantity > 0
+            return (
+              <div
+                key={kaba.id}
+                onClick={() => setSelectedKaba(kaba)}
+                className="group cursor-pointer transition-all duration-500"
+                style={{
+                  background: '#ffffff',
+                  borderRadius: '2.5rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 16px rgba(1,45,29,0.06)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 12px 32px rgba(1,45,29,0.12)')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 16px rgba(1,45,29,0.06)')}
+              >
+                {/* Image area */}
+                <div style={{ position: 'relative', height: '220px', overflow: 'hidden', background: '#eeeeed' }}>
+                  {kaba.imageUrl ? (
+                    <img
+                      src={kaba.imageUrl}
+                      alt={kaba.name}
+                      className="w-full h-full transition-transform duration-700 group-hover:scale-105"
+                      style={{ objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <div className="w-full h-full" />
+                  )}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(to top, rgba(1,45,29,0.40) 0%, transparent 55%)',
+                  }} />
 
-              {/* Card body */}
-              <div className="px-6 pt-5 pb-6 flex flex-col gap-3">
-                <div className="flex items-center gap-2" dir="rtl">
-                  <ColorSwatch name={kaba.name} />
-                  <h3 className="font-jakarta font-bold text-primary" style={{ fontSize: '1.25rem' }}>
-                    {COLOR_NAME_HE[kaba.name] ?? kaba.name}
-                  </h3>
-                </div>
-
-                {kaba.size && (
-                  <span
-                    className="self-start font-inter font-medium"
-                    style={{
-                      fontSize: '11px',
-                      padding: '3px 11px',
-                      borderRadius: '999px',
-                      background: '#f3f4f3',
-                      color: '#414844',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    מידה {SIZE_HE[kaba.size] ?? kaba.size}
-                  </span>
-                )}
-
-                <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(193,200,194,0.30)' }}>
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-jakarta font-black text-primary" style={{ fontSize: '1.5rem' }}>
-                      ₪{kaba.pricePerDay}
+                  {/* Category badge — top-right */}
+                  {kaba.category && (
+                    <span
+                      className="absolute top-5 right-5 font-inter font-semibold uppercase"
+                      style={{ fontSize: '10px', letterSpacing: '0.1em', padding: '5px 13px', borderRadius: '999px', background: 'rgba(255,255,255,0.90)', backdropFilter: 'blur(8px)', color: '#012d1d' }}
+                    >
+                      {CATEGORY_HE[kaba.category] ?? kaba.category}
                     </span>
-                    <span className="font-inter text-on-surface-variant" style={{ fontSize: '12px' }}>/ יום</span>
-                  </div>
-                  <button
-                    onClick={e => { e.stopPropagation(); setSelectedKaba(kaba) }}
-                    className="ds-btn-primary"
-                    style={{ padding: '8px 20px', fontSize: '13px' }}
+                  )}
+
+                  {/* Availability badge — top-left */}
+                  <span
+                    className="absolute top-5 left-5 font-inter font-semibold"
+                    style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '999px', background: inStock ? 'rgba(46,125,50,0.95)' : 'rgba(180,30,30,0.95)', color: 'white' }}
                   >
-                    הזמן עכשיו
-                  </button>
+                    {inStock ? 'זמין' : 'אזל המלאי'}
+                  </span>
+                </div>
+
+                {/* Card body */}
+                <div className="px-6 pt-5 pb-6 flex flex-col gap-3">
+                  <div className="flex items-center gap-2" dir="rtl">
+                    <ColorSwatch name={kaba.name} />
+                    <h3 className="font-jakarta font-bold text-primary" style={{ fontSize: '1.25rem' }}>
+                      {COLOR_NAME_HE[kaba.name] ?? kaba.name}
+                    </h3>
+                  </div>
+
+                  <div dir="rtl" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {kaba.size && (
+                      <span
+                        className="self-start font-inter font-medium"
+                        style={{ fontSize: '11px', padding: '3px 11px', borderRadius: '999px', background: '#f3f4f3', color: '#414844', letterSpacing: '0.04em' }}
+                      >
+                        מידה {SIZE_HE[kaba.size] ?? kaba.size}
+                      </span>
+                    )}
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontStyle: 'italic', color: '#717973' }}>
+                      {kaba.quantity} פריטים זמינים
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(193,200,194,0.30)' }}>
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-jakarta font-black text-primary" style={{ fontSize: '1.5rem' }}>₪{kaba.pricePerDay}</span>
+                      <span className="font-inter text-on-surface-variant" style={{ fontSize: '12px' }}>/ יום</span>
+                    </div>
+                    <button
+                      disabled={!inStock}
+                      onClick={e => { e.stopPropagation(); if (inStock) setSelectedKaba(kaba) }}
+                      className="ds-btn-primary"
+                      style={{ padding: '8px 20px', fontSize: '13px', opacity: inStock ? 1 : 0.45, cursor: inStock ? 'pointer' : 'not-allowed' }}
+                    >
+                      הזמן עכשיו
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
+
+      {/* ─── SECTION 5: How it Works — compact strip ─── */}
+      <div
+        dir="rtl"
+        style={{ margin: '40px auto 0', padding: '24px 32px', maxWidth: '1100px' }}
+      >
+        <p style={{
+          textAlign: 'center',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '16px',
+          fontWeight: 700,
+          color: '#717973',
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          marginBottom: '16px',
+        }}>
+          איך זה עובד
+        </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+          {HOW_IT_WORKS.map(({ title, icon }, i) => (
+            <>
+              {i > 0 && (
+                <span
+                  key={`arrow-${i}`}
+                  style={{ color: '#c1c8c2', fontSize: '15px', lineHeight: 1, userSelect: 'none', flexShrink: 0 }}
+                >
+                  ←
+                </span>
+              )}
+              <div
+                key={title}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}
+              >
+                <StepIcon type={icon} />
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1a1c1c', whiteSpace: 'nowrap' }}>
+                  {title}
+                </span>
+              </div>
+            </>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
