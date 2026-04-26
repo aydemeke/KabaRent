@@ -4,6 +4,23 @@ import { getById } from '../../api/orders'
 import StatusBadge from '../../components/StatusBadge'
 import Spinner from '../../components/Spinner'
 
+const COLOR_NAME_HE = {
+  'Black Gold':  'שחור זהב',
+  'Red Gold':    'אדום זהב',
+  'Black White': 'שחור לבן',
+  'White Gold':  'לבן זהב',
+  'Blue Gold':   'כחול זהב',
+  'Red White':   'אדום לבן',
+}
+
+const STATUS_HE = {
+  PENDING:   'ממתין לאישור',
+  CONFIRMED: 'מאושר',
+  ACTIVE:    'פעיל',
+  COMPLETED: 'הושלם',
+  CANCELLED: 'בוטל',
+}
+
 function Row({ label, value }) {
   return (
     <div className="flex flex-col">
@@ -22,15 +39,15 @@ export default function OrderStatusPage() {
   useEffect(() => {
     getById(id)
       .then(setOrder)
-      .catch(() => setError('Order not found.'))
+      .catch(() => setError('ההזמנה לא נמצאה.'))
       .finally(() => setLoading(false))
   }, [id])
 
   if (loading) return <Spinner />
   if (error) return (
-    <div className="text-center py-20">
+    <div className="text-center py-20" dir="rtl">
       <p className="font-inter text-sm mb-4" style={{ color: '#560000' }}>{error}</p>
-      <Link to="/" className="ds-btn-text">Back to browse</Link>
+      <Link to="/" className="ds-btn-text">חזרה לעיון</Link>
     </div>
   )
 
@@ -39,7 +56,7 @@ export default function OrderStatusPage() {
   )
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto" dir="rtl">
       {/* Confirmation banner */}
       <div
         className="rounded-2xl px-6 py-5 mb-6 flex items-start gap-4"
@@ -53,10 +70,10 @@ export default function OrderStatusPage() {
         </span>
         <div>
           <h1 className="font-jakarta font-bold text-primary" style={{ fontSize: '1.1rem', marginBottom: '2px' }}>
-            Order #{order.id} placed!
+            הזמנה מספר #{order.id} בוצעה!
           </h1>
           <p className="font-inter text-sm text-on-surface-variant">
-            Your order is <strong className="text-on-surface">{order.status}</strong>. The team will confirm it shortly.
+            הזמנתך במצב <strong className="text-on-surface">{STATUS_HE[order.status] ?? order.status}</strong>. הצוות יאשר אותה בקרוב.
           </p>
         </div>
       </div>
@@ -66,27 +83,27 @@ export default function OrderStatusPage() {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
-          <span className="font-jakarta font-semibold text-on-surface">Order #{order.id}</span>
+          <span className="font-jakarta font-semibold text-on-surface">הזמנה מספר #{order.id}</span>
           <StatusBadge status={order.status} />
         </div>
 
         {/* Dates grid */}
         <div className="px-6 py-5 grid grid-cols-2 gap-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
-          <Row label="Event date"  value={order.eventDate} />
-          <Row label="Return date" value={order.returnDate} />
-          <Row label="Duration"    value={`${rentalDays} day${rentalDays !== 1 ? 's' : ''}`} />
-          <Row label="Placed on"   value={new Date(order.createdAt).toLocaleDateString()} />
+          <Row label="תאריך אירוע"   value={order.eventDate} />
+          <Row label="תאריך החזרה"   value={order.returnDate} />
+          <Row label="משך השכרה"     value={`${rentalDays} ${rentalDays === 1 ? 'יום' : 'ימים'}`} />
+          <Row label="תאריך הזמנה"   value={new Date(order.createdAt).toLocaleDateString('he-IL')} />
         </div>
 
         {/* Items */}
         <div className="px-6 py-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
-          <p className="ds-label mb-3">Items</p>
+          <p className="ds-label mb-3">פריטים</p>
           <div className="space-y-2">
             {order.items.map(item => (
               <div key={item.id} className="flex justify-between font-inter text-sm">
                 <span className="text-on-surface">
-                  {item.kabaName}
-                  <span className="text-on-surface-variant ml-1">× {item.quantity}</span>
+                  {COLOR_NAME_HE[item.kabaName] ?? item.kabaName}
+                  <span className="text-on-surface-variant mr-1">× {item.quantity}</span>
                 </span>
                 <span className="font-medium text-on-surface">
                   ₪{(item.unitPrice * rentalDays * item.quantity).toFixed(2)}
@@ -98,27 +115,27 @@ export default function OrderStatusPage() {
 
         {/* Total */}
         <div className="px-6 py-4 flex justify-between items-center" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
-          <span className="font-inter font-semibold text-on-surface-variant text-sm">Total</span>
+          <span className="font-inter font-semibold text-on-surface-variant text-sm">סה״כ</span>
           <span className="font-jakarta font-black text-primary" style={{ fontSize: '1.35rem' }}>₪{order.totalPrice}</span>
         </div>
 
         {/* Customer */}
         <div className="px-6 py-5">
-          <p className="ds-label mb-2">Customer</p>
+          <p className="ds-label mb-2">פרטי לקוח</p>
           <p className="font-inter font-medium text-on-surface text-sm">{order.customer.fullName}</p>
           <p className="font-inter text-on-surface-variant text-sm">{order.customer.phone} · {order.customer.email}</p>
         </div>
 
         {order.notes && (
           <div className="px-6 pb-5 font-inter text-sm" style={{ borderTop: '1px solid rgba(193,200,194,0.25)', paddingTop: '16px' }}>
-            <span className="text-on-surface-variant">Notes: </span>
+            <span className="text-on-surface-variant">הערות: </span>
             <span className="text-on-surface">{order.notes}</span>
           </div>
         )}
       </div>
 
       <div className="mt-8 text-center">
-        <Link to="/" className="ds-btn-text">← Back to browse</Link>
+        <Link to="/" className="ds-btn-text">→ חזרה לעיון</Link>
       </div>
     </div>
   )

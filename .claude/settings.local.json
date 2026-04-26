@@ -14,7 +14,15 @@
       "Bash(xargs -I{} cmd //c \"taskkill /PID {} /F\")",
       "Bash(curl *)",
       "Bash(powershell *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(docker exec *)",
+      "Bash(mvn clean *)",
+      "Bash(findstr :8080)",
+      "Bash(taskkill *)",
+      "PowerShell(taskkill *)",
+      "PowerShell(netstat *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)"
     ]
   }
 }

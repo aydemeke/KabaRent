@@ -3,6 +3,7 @@ com\kabarent\model\Payment.class
 com\kabarent\dto\response\OrderItemResponse$OrderItemResponseBuilder.class
 com\kabarent\model\Payment$PaymentBuilder.class
 com\kabarent\controller\KabaController.class
+com\kabarent\config\DataInitializer.class
 com\kabarent\repository\OrderRepository.class
 com\kabarent\service\OrderService$1.class
 com\kabarent\model\enums\OrderStatus.class
@@ -43,6 +44,7 @@ com\kabarent\model\Kaba.class
 com\kabarent\repository\PaymentRepository.class
 com\kabarent\model\Customer$CustomerBuilder.class
 com\kabarent\service\OrderService.class
+com\kabarent\dto\response\PaymentBalanceResponse.class
 com\kabarent\dto\request\CustomerRequest.class
 com\kabarent\dto\request\UpdateOrderStatusRequest.class
 com\kabarent\dto\response\CustomerResponse$CustomerResponseBuilder.class

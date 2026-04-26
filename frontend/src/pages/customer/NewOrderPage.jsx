@@ -6,12 +6,23 @@ import { create as createOrder } from '../../api/orders'
 import Spinner from '../../components/Spinner'
 import DateInput from '../../components/DateInput'
 
+const COLOR_NAME_HE = {
+  'Black Gold':  'שחור זהב',
+  'Red Gold':    'אדום זהב',
+  'Black White': 'שחור לבן',
+  'White Gold':  'לבן זהב',
+  'Blue Gold':   'כחול זהב',
+  'Red White':   'אדום לבן',
+}
+
+const SIZE_HE = { Small: 'קטנה', Medium: 'בינונית', Large: 'גדולה' }
+
 const today = new Date().toISOString().split('T')[0]
 
 function SectionCard({ step, title, children }) {
   return (
     <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)' }}>
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center gap-3 mb-5" dir="rtl">
         <span
           className="font-inter font-bold text-sm text-white flex-shrink-0 flex items-center justify-center"
           style={{ width: 28, height: 28, borderRadius: '50%', background: '#012d1d' }}
@@ -68,10 +79,10 @@ export default function NewOrderPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (!kabaId) { setError('Please select a Kaba.'); return }
-    if (!eventDate || !returnDate) { setError('Please select event and return dates.'); return }
+    if (!kabaId) { setError('יש לבחור קאבה.'); return }
+    if (!eventDate || !returnDate) { setError('יש לבחור תאריכי אירוע והחזרה.'); return }
     if (availability && !availability.available) {
-      setError('This Kaba is not available for the selected dates.')
+      setError('הקאבה אינה זמינה לתאריכים שנבחרו.')
       return
     }
     setSubmitting(true)
@@ -84,7 +95,7 @@ export default function NewOrderPage() {
       })
       navigate(`/order/${order.id}`)
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong. Please try again.')
+      setError(err.response?.data?.error || 'אירעה שגיאה. אנא נסה שוב.')
     } finally {
       setSubmitting(false)
     }
@@ -93,15 +104,15 @@ export default function NewOrderPage() {
   if (loadingKabas) return <Spinner />
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto" dir="rtl">
       <h1 className="font-jakarta font-bold text-on-surface mb-8" style={{ fontSize: '1.75rem', letterSpacing: '-0.01em' }}>
-        New Rental Order
+        הזמנת השכרה חדשה
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
 
         {/* Kaba selector */}
-        <SectionCard step="1" title="Select a Kaba">
+        <SectionCard step="1" title="בחר קאבה">
           <select
             value={kabaId}
             onChange={e => setKabaId(e.target.value)}
@@ -111,12 +122,12 @@ export default function NewOrderPage() {
             style={kabas.length === 0 ? { background: '#e2e2e2', color: '#414844' } : undefined}
           >
             {kabas.length === 0
-              ? <option value="" disabled>No Kabas available</option>
+              ? <option value="" disabled>אין קאבות זמינות</option>
               : <>
-                  <option value="">— Choose a Kaba —</option>
+                  <option value="">— בחר קאבה —</option>
                   {kabas.map(k => (
                     <option key={k.id} value={k.id}>
-                      {k.name} {k.size ? `(${k.size})` : ''} — ₪{k.pricePerDay}/day
+                      {COLOR_NAME_HE[k.name] ?? k.name} {k.size ? `(${SIZE_HE[k.size] ?? k.size})` : ''} — ₪{k.pricePerDay}/יום
                     </option>
                   ))}
                 </>
@@ -125,13 +136,13 @@ export default function NewOrderPage() {
         </SectionCard>
 
         {/* Dates */}
-        <SectionCard step="2" title="Rental Dates">
+        <SectionCard step="2" title="תאריכי השכרה">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="ds-label block mb-1.5">Event Date</label>
+              <label className="ds-label block mb-1.5">תאריך אירוע</label>
               <DateInput
                 value={eventDate}
-                placeholder="Select event date"
+                placeholder="בחר תאריך"
                 min={today}
                 required
                 onChange={e => setEventDate(e.target.value)}
@@ -140,10 +151,10 @@ export default function NewOrderPage() {
               />
             </div>
             <div>
-              <label className="ds-label block mb-1.5">Return Date</label>
+              <label className="ds-label block mb-1.5">תאריך החזרה</label>
               <DateInput
                 value={returnDate}
-                placeholder="Select return date"
+                placeholder="בחר תאריך"
                 min={eventDate || today}
                 required
                 onChange={e => setReturnDate(e.target.value)}
@@ -161,15 +172,15 @@ export default function NewOrderPage() {
               }
             >
               {availability.available
-                ? `✓ Available — ${availability.availableQuantity} unit${availability.availableQuantity !== 1 ? 's' : ''} free`
-                : '✗ Not available for these dates'}
+                ? `✓ זמין — ${availability.availableQuantity} יחידות פנויות`
+                : '✗ לא זמין לתאריכים אלו'}
             </div>
           )}
 
           {availability?.available && (
             <div className="mt-4 flex items-center gap-6">
               <div>
-                <label className="ds-label block mb-1.5">Quantity</label>
+                <label className="ds-label block mb-1.5">כמות</label>
                 <input
                   type="number" min={1} max={availability.availableQuantity}
                   value={quantity}
@@ -180,7 +191,7 @@ export default function NewOrderPage() {
               </div>
               {estimatedTotal && (
                 <div className="font-inter text-sm text-on-surface-variant">
-                  {rentalDays} day{rentalDays !== 1 ? 's' : ''} × ₪{selectedKaba.pricePerDay} × {quantity} =&nbsp;
+                  {rentalDays} ימים × ₪{selectedKaba.pricePerDay} × {quantity} =&nbsp;
                   <span className="font-bold text-primary">₪{estimatedTotal}</span>
                 </div>
               )}
@@ -189,20 +200,20 @@ export default function NewOrderPage() {
         </SectionCard>
 
         {/* Customer details */}
-        <SectionCard step="3" title="Your Details">
+        <SectionCard step="3" title="פרטי לקוח">
           <div className="space-y-4">
             <div>
-              <label className="ds-label block mb-1.5">Full name</label>
+              <label className="ds-label block mb-1.5">שם מלא</label>
               <input
                 type="text" value={fullName} required
                 onChange={e => setFullName(e.target.value)}
-                placeholder="e.g. Sara Cohen"
+                placeholder="לדוגמה: שרה כהן"
                 className="ds-input"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="ds-label block mb-1.5">Phone</label>
+                <label className="ds-label block mb-1.5">טלפון</label>
                 <input
                   type="tel" value={phone} required
                   onChange={e => setPhone(e.target.value)}
@@ -211,7 +222,7 @@ export default function NewOrderPage() {
                 />
               </div>
               <div>
-                <label className="ds-label block mb-1.5">Email</label>
+                <label className="ds-label block mb-1.5">אימייל</label>
                 <input
                   type="email" value={email} required
                   onChange={e => setEmail(e.target.value)}
@@ -221,11 +232,11 @@ export default function NewOrderPage() {
               </div>
             </div>
             <div>
-              <label className="ds-label block mb-1.5">Notes (optional)</label>
+              <label className="ds-label block mb-1.5">הערות (אופציונלי)</label>
               <textarea
                 value={notes} rows={2}
                 onChange={e => setNotes(e.target.value)}
-                placeholder="Any special requests..."
+                placeholder="בקשות מיוחדות..."
                 className="ds-input resize-none"
               />
             </div>
@@ -238,13 +249,23 @@ export default function NewOrderPage() {
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="ds-btn-primary w-full py-3.5 text-base"
-        >
-          {submitting ? 'Placing order…' : 'Place Order'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex-1 py-3.5 text-base rounded-xl font-inter font-medium transition-colors"
+            style={{ background: '#f3f4f3', color: '#414844', border: 'none', cursor: 'pointer' }}
+          >
+            ביטול
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="ds-btn-primary flex-1 py-3.5 text-base"
+          >
+            {submitting ? 'שולח הזמנה…' : 'שלח הזמנה'}
+          </button>
+        </div>
       </form>
     </div>
   )

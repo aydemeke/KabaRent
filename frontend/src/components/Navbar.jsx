@@ -1,8 +1,7 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 export default function Navbar() {
   const { pathname } = useLocation()
-  const navigate = useNavigate()
   const isAdmin = pathname.startsWith('/admin')
 
   function active(path) {
@@ -23,16 +22,7 @@ export default function Navbar() {
         borderBottom: '1px solid #e8e8e7',
       }}
     >
-      {/* Brand */}
-      <Link
-        to="/"
-        className="font-jakarta font-bold italic text-3xl select-none"
-        style={{ color: '#012d1d' }}
-      >
-        ካባ
-      </Link>
-
-      {/* Nav links */}
+      {/* Nav links — left side */}
       <div className="flex items-center gap-6 text-sm font-inter font-medium tracking-wide">
         {isAdmin ? (
           <>
@@ -50,24 +40,25 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/"          className={active('/')}>Browse</Link>
-            <Link to="/order/new" className={active('/order/new')}>New Order</Link>
             <Link
               to="/admin"
               className="text-xs text-on-surface-variant hover:text-on-surface transition-colors opacity-60 hover:opacity-100"
             >
               Admin →
             </Link>
-            <button
-              onClick={() => navigate('/order/new')}
-              className="ml-2 bg-primary text-white font-semibold rounded-xl px-6 py-2.5 text-sm tracking-wide transition-all duration-150 hover:scale-95 active:scale-90"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Rent Now
-            </button>
+            <Link to="/order/new" className={active('/order/new')}>הזמנה חדשה</Link>
           </>
         )}
       </div>
+
+      {/* Brand — right side */}
+      <Link to="/" className="select-none">
+        <img
+          src="/kaba-rent-logo.png"
+          alt="ካባ"
+          style={{ height: '72px', width: 'auto', objectFit: 'contain', mixBlendMode: 'multiply' }}
+        />
+      </Link>
     </nav>
   )
 }

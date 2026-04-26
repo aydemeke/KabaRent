@@ -1,3 +1,14 @@
+const CATEGORY_HE = { Wedding: 'חתונה', Anniversary: 'יום נישואין', Other: 'אחר' }
+const SIZE_HE = { Small: 'קטנה', Medium: 'בינונית', Large: 'גדולה' }
+const COLOR_NAME_HE = {
+  'Black Gold':  'שחור זהב',
+  'Red Gold':    'אדום זהב',
+  'Black White': 'שחור לבן',
+  'White Gold':  'לבן זהב',
+  'Blue Gold':   'כחול זהב',
+  'Red White':   'אדום לבן',
+}
+
 const PACKAGE_ITEMS_TAIL = [
   '4 חצוצרות טורומבות מסורתיות',
   '4 מקלות עם צבעי דגל אתיופיה',
@@ -6,7 +17,7 @@ const PACKAGE_ITEMS_TAIL = [
 ]
 
 export default function KabaDetailModal({ kaba, onBook, onClose }) {
-  const packageItems = [`זוג קאבות בצבע ${kaba.name}`, ...PACKAGE_ITEMS_TAIL]
+  const packageItems = [`זוג קאבות בצבע ${COLOR_NAME_HE[kaba.name] ?? kaba.name}`, ...PACKAGE_ITEMS_TAIL]
 
   return (
     <div
@@ -31,9 +42,9 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
             background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)',
           }} />
           {/* Name + pills overlaid */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 20px 12px' }}>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 20px 12px' }} dir="rtl">
             <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', lineHeight: 1.2, marginBottom: '6px' }}>
-              {kaba.name}
+              {COLOR_NAME_HE[kaba.name] ?? kaba.name}
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {kaba.category && (
@@ -42,7 +53,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
                   background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)',
                   borderRadius: '20px', padding: '3px 10px',
                 }}>
-                  {kaba.category}
+                  {CATEGORY_HE[kaba.category] ?? kaba.category}
                 </span>
               )}
               {kaba.size && (
@@ -51,7 +62,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
                   background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)',
                   borderRadius: '20px', padding: '3px 10px',
                 }}>
-                  {kaba.size}
+                  {SIZE_HE[kaba.size] ?? kaba.size}
                 </span>
               )}
             </div>
@@ -99,7 +110,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
             <span style={{ fontSize: '24px', fontWeight: 800, color: '#111827' }}>
               ₪{kaba.pricePerDay}
             </span>
-            <span style={{ fontSize: '13px', color: '#9CA3AF', marginLeft: '4px' }}>/ day</span>
+            <span style={{ fontSize: '13px', color: '#9CA3AF', marginRight: '4px' }}>/ יום</span>
           </div>
 
           {/* Book Now button */}
