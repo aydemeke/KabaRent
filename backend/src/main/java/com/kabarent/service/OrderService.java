@@ -8,6 +8,7 @@ import com.kabarent.exception.AvailabilityException;
 import com.kabarent.exception.ResourceNotFoundException;
 import com.kabarent.model.*;
 import com.kabarent.model.enums.OrderStatus;
+import com.kabarent.repository.KabaRepository;
 import com.kabarent.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class OrderService {
     private final CustomerService customerService;
     private final KabaService kabaService;
     private final AvailabilityService availabilityService;
+    private final KabaRepository kabaRepository;
 
     @Transactional
     public OrderResponse create(CreateOrderRequest request) {
@@ -96,8 +98,32 @@ public class OrderService {
     @Transactional
     public OrderResponse updateStatus(Long id, UpdateOrderStatusRequest request) {
         Order order = findOrThrow(id);
-        validateTransition(order.getStatus(), request.getStatus());
-        order.setStatus(request.getStatus());
+        OrderStatus newStatus = request.getStatus();
+        validateTransition(order.getStatus(), newStatus);
+
+        // Re-validate availability when confirming: PENDING orders do not hold stock,
+        // so two orders can both pass the create-time check. Confirming the first
+        // takes a write lock on each Kaba and rechecks against other CONFIRMED/ACTIVE
+        // orders, so the second confirm is rejected instead of overbooking.
+        if (newStatus == OrderStatus.CONFIRMED) {
+            for (OrderItem item : order.getItems()) {
+                // Lock the Kaba row to serialize concurrent confirmations.
+                kabaRepository.findByIdWithLock(item.getKaba().getId());
+                boolean available = availabilityService.isAvailable(
+                        item.getKaba().getId(),
+                        order.getEventDate(),
+                        order.getReturnDate(),
+                        item.getQuantity(),
+                        order.getId());
+                if (!available) {
+                    throw new AvailabilityException(
+                            "Kaba '" + item.getKaba().getName() +
+                            "' is no longer available for the selected dates");
+                }
+            }
+        }
+
+        order.setStatus(newStatus);
         return OrderResponse.from(orderRepository.save(order));
     }
 

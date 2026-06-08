@@ -56,6 +56,20 @@ public class AvailabilityService {
     }
 
     /**
+     * Same as isAvailable but ignores a specific order, so an order being confirmed
+     * is not counted against its own availability during re-validation.
+     */
+    public boolean isAvailable(Long kabaId, LocalDate eventDate, LocalDate returnDate,
+                               int requiredQty, Long excludeOrderId) {
+        Kaba kaba = kabaRepository.findById(kabaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kaba not found with id: " + kabaId));
+
+        int booked = orderItemRepository.sumBookedQuantityExcludingOrder(
+                kabaId, eventDate, returnDate, excludeOrderId);
+        return (kaba.getQuantity() - booked) >= requiredQty;
+    }
+
+    /**
      * Returns all active Kabas that have at least 1 unit available for the given date range.
      */
     public List<KabaResponse> getAvailableKabas(LocalDate eventDate, LocalDate returnDate) {

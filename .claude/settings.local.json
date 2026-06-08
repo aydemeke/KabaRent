@@ -22,7 +22,11 @@
       "PowerShell(taskkill *)",
       "PowerShell(netstat *)",
       "Bash(git checkout *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(mvn -q compile)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

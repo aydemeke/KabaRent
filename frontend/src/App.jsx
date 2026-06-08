@@ -8,6 +8,15 @@ import BrowsePage from './pages/customer/BrowsePage'
 import NewOrderPage from './pages/customer/NewOrderPage'
 import OrderStatusPage from './pages/customer/OrderStatusPage'
 
+// Content / info pages
+import AboutPage from './pages/content/AboutPage'
+import HowItWorksPage from './pages/content/HowItWorksPage'
+import FaqPage from './pages/content/FaqPage'
+import ContactPage from './pages/content/ContactPage'
+import RentalTermsPage from './pages/content/RentalTermsPage'
+import ReturnsPage from './pages/content/ReturnsPage'
+import PrivacyPage from './pages/content/PrivacyPage'
+
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminKabasPage from './pages/admin/AdminKabasPage'
@@ -28,6 +37,15 @@ function AppLayout() {
           <Route path="/" element={<BrowsePage />} />
           <Route path="/order/new" element={<NewOrderPage />} />
           <Route path="/order/:id" element={<OrderStatusPage />} />
+
+          {/* Content / info pages */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/rental-terms" element={<RentalTermsPage />} />
+          <Route path="/returns" element={<ReturnsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           {/* Admin dashboard */}
           <Route path="/admin" element={<AdminGuard><AdminDashboardPage /></AdminGuard>} />

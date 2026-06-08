@@ -28,13 +28,24 @@ public class CustomerService {
     }
 
     public CustomerResponse create(CustomerRequest request) {
-        Customer customer = Customer.builder()
-                .fullName(request.getFullName())
-                .phone(request.getPhone())
-                .email(request.getEmail())
-                .notes(request.getNotes())
-                .build();
-        return CustomerResponse.from(customerRepository.save(customer));
+        return CustomerResponse.from(findOrCreateByEmail(request));
+    }
+
+    /**
+     * Returns the existing customer with the given email, or creates a new one
+     * if none exists. Prevents the UNIQUE(email) constraint violation that occurs
+     * when a returning customer places another order.
+     */
+    public Customer findOrCreateByEmail(CustomerRequest request) {
+        return customerRepository.findByEmail(request.getEmail())
+                .orElseGet(() -> customerRepository.save(
+                        Customer.builder()
+                                .fullName(request.getFullName())
+                                .phone(request.getPhone())
+                                .email(request.getEmail())
+                                .notes(request.getNotes())
+                                .build()
+                ));
     }
 
     public CustomerResponse update(Long id, CustomerRequest request) {

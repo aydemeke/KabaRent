@@ -317,7 +317,7 @@ export default function BrowsePage() {
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 border: activeCategory === pill ? 'none' : '1px solid #c1c8c2',
-                background: activeCategory === pill ? '#012d1d' : 'transparent',
+                background: activeCategory === pill ? '#2E7D32' : 'transparent',
                 color: activeCategory === pill ? 'white' : '#1a1c1c',
               }}
             >

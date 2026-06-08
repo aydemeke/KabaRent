@@ -1,23 +1,30 @@
 import { Link } from 'react-router-dom'
 
-function FooterLink({ children }) {
+const FOOTER_LINK_STYLE = {
+  color: 'rgba(1,45,29,0.70)',
+  fontFamily: 'Inter, sans-serif',
+  fontSize: '14px',
+  textDecoration: 'none',
+  display: 'block',
+  marginBottom: '10px',
+  transition: 'color 0.2s ease',
+}
+
+function FooterLink({ to, children }) {
+  const hoverIn = e => (e.currentTarget.style.color = 'rgba(1,45,29,1)')
+  const hoverOut = e => (e.currentTarget.style.color = 'rgba(1,45,29,0.70)')
+
+  // Links without a route target (not yet built) stay as inert placeholders.
+  if (!to) {
+    return (
+      <span style={{ ...FOOTER_LINK_STYLE, cursor: 'default' }}>{children}</span>
+    )
+  }
+
   return (
-    <a
-      href="#"
-      style={{
-        color: 'rgba(1,45,29,0.70)',
-        fontFamily: 'Inter, sans-serif',
-        fontSize: '14px',
-        textDecoration: 'none',
-        display: 'block',
-        marginBottom: '10px',
-        transition: 'color 0.2s ease',
-      }}
-      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(1,45,29,1)')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.70)')}
-    >
+    <Link to={to} style={FOOTER_LINK_STYLE} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>
       {children}
-    </a>
+    </Link>
   )
 }
 
@@ -75,18 +82,18 @@ export default function Footer() {
         {/* Column 2 — אודות */}
         <div>
           <h4 style={SECTION_HEADING}>אודות</h4>
-          <FooterLink>עלינו</FooterLink>
-          <FooterLink>איך זה עובד</FooterLink>
-          <FooterLink>שאלות נפוצות</FooterLink>
-          <FooterLink>צור קשר</FooterLink>
+          <FooterLink to="/about">עלינו</FooterLink>
+          <FooterLink to="/how-it-works">איך זה עובד</FooterLink>
+          <FooterLink to="/faq">שאלות נפוצות</FooterLink>
+          <FooterLink to="/contact">צור קשר</FooterLink>
         </div>
 
         {/* Column 3 — מדיניות */}
         <div>
           <h4 style={SECTION_HEADING}>מדיניות</h4>
-          <FooterLink>תקנון השכרה</FooterLink>
-          <FooterLink>מדיניות החזרות</FooterLink>
-          <FooterLink>מדיניות פרטיות</FooterLink>
+          <FooterLink to="/rental-terms">תקנון השכרה</FooterLink>
+          <FooterLink to="/returns">מדיניות החזרות</FooterLink>
+          <FooterLink to="/privacy">מדיניות פרטיות</FooterLink>
           <FooterLink>תנאי שימוש</FooterLink>
         </div>
 
