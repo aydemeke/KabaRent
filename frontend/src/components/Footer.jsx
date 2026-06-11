@@ -102,7 +102,7 @@ export default function Footer() {
           <h4 style={SECTION_HEADING}>צור קשר</h4>
           <p style={CONTACT_LINE}>📞 050-1234567</p>
           <p style={CONTACT_LINE}>✉️ info@kaba-rent.co.il</p>
-          <p style={CONTACT_LINE}>📍 חיפה, ישראל</p>
+          <p style={CONTACT_LINE}>📍 תל אביב, ישראל</p>
           <p style={{ ...CONTACT_LINE, fontSize: '13px', color: 'rgba(1,45,29,0.55)' }}>
             שעות: א׳-ה׳ 09:00-19:00
           </p>

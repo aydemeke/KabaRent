@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import AdminGuard from './components/AdminGuard'
@@ -24,12 +25,29 @@ import AdminOrdersPage from './pages/admin/AdminOrdersPage'
 import AdminCustomersPage from './pages/admin/AdminCustomersPage'
 import AdminPaymentsPage from './pages/admin/AdminPaymentsPage'
 
+// Reset scroll to the top when navigating to a new page (footer link, etc.).
+// Skip POP navigations (browser/back-button, including closing a content page)
+// so returning to the previous page keeps its prior scroll position.
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  const navigationType = useNavigationType()
+
+  useEffect(() => {
+    if (navigationType !== 'POP') {
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, navigationType])
+
+  return null
+}
+
 function AppLayout() {
   const { pathname } = useLocation()
   const isAdmin = pathname.startsWith('/admin')
 
   return (
     <div className={`min-h-screen flex flex-col${!isAdmin ? ' customer-bg' : ''}`}>
+      <ScrollToTop />
       <Navbar />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 pt-0 pb-6">
         <Routes>

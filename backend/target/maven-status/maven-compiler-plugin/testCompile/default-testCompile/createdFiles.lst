@@ -1,0 +1,4 @@
+com\kabarent\service\AvailabilityServiceTest.class
+com\kabarent\repository\OrderItemRepositoryIT.class
+com\kabarent\service\PaymentServiceTest.class
+com\kabarent\service\OrderServiceTest.class
