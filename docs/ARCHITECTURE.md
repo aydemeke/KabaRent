@@ -1,3 +1,5 @@
+> ⚠️ **POSSIBLY STALE — pending a later audit.** This document predates recent changes (e.g. the move from H2 to PostgreSQL, React Router v7, confirm-time locking). Do not trust it blindly; verify against the code and [`CODEBASE_REVIEW_2026.md`](CODEBASE_REVIEW_2026.md). For current setup/API/architecture, see the root `README.md` and `CLAUDE.md`.
+
 # KabaRent — System Architecture
 
 ## Overview

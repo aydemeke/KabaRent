@@ -1,3 +1,5 @@
+> ⚠️ **POSSIBLY STALE — pending a later audit.** This design-system document may not reflect the current implementation (which mixes `.ds-*` utilities with inline styles). Verify against `frontend/src/index.css` and `tailwind.config.js` before relying on it.
+
 # KabaRent Design System
 
 ## Principles
