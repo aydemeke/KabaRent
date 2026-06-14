@@ -477,12 +477,13 @@ export default function BrowsePage() {
           איך זה עובד
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           {HOW_IT_WORKS.map(({ title, icon }, i) => (
             <>
               {i > 0 && (
                 <span
                   key={`arrow-${i}`}
+                  className="hidden sm:inline"
                   style={{ color: '#c1c8c2', fontSize: '15px', lineHeight: 1, userSelect: 'none', flexShrink: 0 }}
                 >
                   ←

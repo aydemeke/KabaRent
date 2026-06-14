@@ -137,7 +137,7 @@ export default function NewOrderPage() {
 
         {/* Dates */}
         <SectionCard step="2" title="תאריכי השכרה">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="ds-label block mb-1.5">תאריך אירוע</label>
               <DateInput
@@ -211,7 +211,7 @@ export default function NewOrderPage() {
                 className="ds-input"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="ds-label block mb-1.5">טלפון</label>
                 <input

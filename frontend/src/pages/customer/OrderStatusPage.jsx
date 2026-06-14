@@ -88,7 +88,7 @@ export default function OrderStatusPage() {
         </div>
 
         {/* Dates grid */}
-        <div className="px-6 py-5 grid grid-cols-2 gap-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
           <Row label="תאריך אירוע"   value={order.eventDate} />
           <Row label="תאריך החזרה"   value={order.returnDate} />
           <Row label="משך השכרה"     value={`${rentalDays} ${rentalDays === 1 ? 'יום' : 'ימים'}`} />
