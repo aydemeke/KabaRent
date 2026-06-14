@@ -111,9 +111,9 @@ function SocialLinks() {
       href="#"
       aria-label={s.label}
       className="inline-flex items-center justify-center w-11 h-11 sm:w-auto sm:h-auto"
-      style={{ color: 'rgba(1,45,29,0.45)', transition: 'color 0.2s ease' }}
+      style={{ color: 'rgba(1,45,29,0.60)', transition: 'color 0.2s ease' }}
       onMouseEnter={e => (e.currentTarget.style.color = '#012d1d')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.45)')}
+      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.60)')}
     >
       {s.svg}
     </a>
@@ -125,9 +125,9 @@ function AdminLink() {
     <Link
       to="/admin"
       className="inline-flex items-center min-h-[44px] sm:min-h-0"
-      style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(1,45,29,0.28)', textDecoration: 'none' }}
-      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.55)')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.28)')}
+      style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(1,45,29,0.65)', textDecoration: 'none' }}
+      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.9)')}
+      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.65)')}
     >
       ניהול
     </Link>
@@ -136,7 +136,7 @@ function AdminLink() {
 
 function Copyright() {
   return (
-    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(1,45,29,0.50)' }}>
+    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(1,45,29,0.70)' }}>
       © 2026 ካባ — כל הזכויות שמורות
     </p>
   )
@@ -201,7 +201,7 @@ export default function Footer() {
           <p style={CONTACT_LINE}>📞 050-1234567</p>
           <p style={CONTACT_LINE}>✉️ info@kaba-rent.co.il</p>
           <p style={CONTACT_LINE}>📍 תל אביב, ישראל</p>
-          <p style={{ ...CONTACT_LINE, fontSize: '13px', color: 'rgba(1,45,29,0.55)' }}>
+          <p style={{ ...CONTACT_LINE, fontSize: '13px', color: 'rgba(1,45,29,0.70)' }}>
             שעות: א׳-ה׳ 09:00-19:00
           </p>
         </AccordionSection>

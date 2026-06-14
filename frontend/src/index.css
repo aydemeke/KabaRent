@@ -59,6 +59,12 @@ body {
   border-radius: 8px;
 }
 
+/* Keyboard focus ring for the clickable product cards on BrowsePage. */
+.kr-card:focus-visible {
+  outline: 2px solid #012d1d;
+  outline-offset: 3px;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: #1a1c1c;

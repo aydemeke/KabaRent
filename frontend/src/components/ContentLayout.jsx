@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import useModalA11y from '../hooks/useModalA11y'
 
 export const titleStyle = {
   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -45,19 +46,17 @@ export default function ContentLayout({ title, children }) {
     }
   }, [navigate])
 
-  // Close on Escape, and lock body scroll while the overlay is open.
+  // Focus trap, focus restore, and Escape-to-close are handled by useModalA11y.
+  const dialogRef = useModalA11y(close)
+
+  // Lock body scroll while the overlay is open.
   useEffect(() => {
-    function onKeyDown(e) {
-      if (e.key === 'Escape') close()
-    }
-    document.addEventListener('keydown', onKeyDown)
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
-      document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previousOverflow
     }
-  }, [close])
+  }, [])
 
   return (
     <div
@@ -76,6 +75,11 @@ export default function ContentLayout({ title, children }) {
       }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="content-modal-title"
+        tabIndex={-1}
         className="bg-white p-5 sm:p-12"
         onClick={e => e.stopPropagation()}
         style={{
@@ -117,7 +121,7 @@ export default function ContentLayout({ title, children }) {
           </svg>
         </button>
 
-        <h1 className="text-2xl sm:text-[2rem]" style={titleStyle}>{title}</h1>
+        <h1 id="content-modal-title" className="text-2xl sm:text-[2rem]" style={titleStyle}>{title}</h1>
         {children}
       </div>
     </div>

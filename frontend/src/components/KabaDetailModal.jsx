@@ -1,3 +1,5 @@
+import useModalA11y from '../hooks/useModalA11y'
+
 const CATEGORY_HE = { Wedding: 'חתונה', Anniversary: 'יום נישואין', Other: 'אחר' }
 const SIZE_HE = { Small: 'קטנה', Medium: 'בינונית', Large: 'גדולה' }
 const COLOR_NAME_HE = {
@@ -18,6 +20,7 @@ const PACKAGE_ITEMS_TAIL = [
 
 export default function KabaDetailModal({ kaba, onBook, onClose }) {
   const packageItems = [`זוג קאבות בצבע ${COLOR_NAME_HE[kaba.name] ?? kaba.name}`, ...PACKAGE_ITEMS_TAIL]
+  const dialogRef = useModalA11y(onClose)
 
   return (
     <div
@@ -26,6 +29,11 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="kaba-modal-title"
+        tabIndex={-1}
         className="bg-white w-full"
         style={{ maxWidth: '460px', borderRadius: '20px' }}
       >
@@ -43,9 +51,9 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
           }} />
           {/* Name + pills overlaid */}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 20px 12px' }} dir="rtl">
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', lineHeight: 1.2, marginBottom: '6px' }}>
+            <h2 id="kaba-modal-title" style={{ fontSize: '18px', fontWeight: 700, color: '#fff', lineHeight: 1.2, marginBottom: '6px' }}>
               {COLOR_NAME_HE[kaba.name] ?? kaba.name}
-            </div>
+            </h2>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {kaba.category && (
                 <span style={{
@@ -75,7 +83,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
           {/* Package contents */}
           <div style={{ marginBottom: '14px' }}>
             <p style={{
-              fontSize: '12px', fontWeight: 600, color: '#9CA3AF',
+              fontSize: '12px', fontWeight: 600, color: '#4b5563',
               letterSpacing: '0.08em', textTransform: 'uppercase',
               marginBottom: '8px', textAlign: 'right',
             }}>
@@ -111,7 +119,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
             <span style={{ fontSize: '24px', fontWeight: 800, color: '#111827' }}>
               ₪{kaba.pricePerDay}
             </span>
-            <span style={{ fontSize: '13px', color: '#9CA3AF', marginRight: '4px' }}>/ יום</span>
+            <span style={{ fontSize: '13px', color: '#4b5563', marginRight: '4px' }}>/ יום</span>
           </div>
 
           {/* Book Now button */}
@@ -144,7 +152,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
                 background: 'none',
                 border: 'none',
                 fontSize: '13px',
-                color: '#9CA3AF',
+                color: '#4b5563',
                 cursor: 'pointer',
                 minHeight: '44px',
                 display: 'inline-flex',
@@ -152,8 +160,8 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
                 justifyContent: 'center',
                 padding: '0 16px',
               }}
-              onMouseEnter={e => e.currentTarget.style.color = '#6B7280'}
-              onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
+              onMouseEnter={e => e.currentTarget.style.color = '#1f2937'}
+              onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
             >
               סגור
             </button>

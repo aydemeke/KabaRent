@@ -13,6 +13,7 @@ export default function Modal({ title, onClose, children }) {
           <h2 className="font-jakarta font-bold text-on-surface text-lg">{title}</h2>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="text-on-surface-variant hover:text-on-surface transition-colors text-2xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-low"
           >
             ×
