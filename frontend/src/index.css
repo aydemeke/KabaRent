@@ -30,20 +30,23 @@ body {
 }
 
 .customer-bg {
+  position: relative;
+}
+
+/* Fixed-position layer holds the background image so it never recalculates
+   on content height changes / re-renders (avoids the jump that
+   background-attachment: fixed caused on every interaction). */
+.customer-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background-image:
     linear-gradient(rgba(249, 249, 248, 0.85), rgba(249, 249, 248, 0.85)),
     url('/kaba-rent-bg-1.png');
   background-size: cover;
   background-position: center top;
-  background-attachment: fixed;
   background-repeat: no-repeat;
-}
-
-@media (max-width: 768px) {
-  .customer-bg {
-    background-attachment: scroll;
-    background-position: center top;
-  }
 }
 
 h1, h2, h3, h4, h5, h6 {
