@@ -70,7 +70,7 @@ export default function Navbar() {
           <img
             src="/kaba-rent-logo.png"
             alt="ካባ"
-            className="h-12 sm:h-[72px] w-auto"
+            className="h-12 sm:h-14 w-auto"
             style={{ objectFit: 'contain', mixBlendMode: 'multiply' }}
           />
         </Link>

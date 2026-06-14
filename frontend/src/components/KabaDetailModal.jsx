@@ -75,7 +75,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
           {/* Package contents */}
           <div style={{ marginBottom: '14px' }}>
             <p style={{
-              fontSize: '11px', fontWeight: 600, color: '#9CA3AF',
+              fontSize: '12px', fontWeight: 600, color: '#9CA3AF',
               letterSpacing: '0.08em', textTransform: 'uppercase',
               marginBottom: '8px', textAlign: 'right',
             }}>
@@ -93,7 +93,7 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: '6px',
-                    fontSize: '12.5px',
+                    fontSize: '13px',
                     color: '#374151',
                     lineHeight: 1.4,
                     textAlign: 'right',

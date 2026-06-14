@@ -124,7 +124,8 @@ function AdminLink() {
   return (
     <Link
       to="/admin"
-      style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(1,45,29,0.28)', textDecoration: 'none' }}
+      className="inline-flex items-center min-h-[44px] sm:min-h-0"
+      style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(1,45,29,0.28)', textDecoration: 'none' }}
       onMouseEnter={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.55)')}
       onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.28)')}
     >

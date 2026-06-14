@@ -206,5 +206,8 @@ button, input, select, textarea, label, a {
     .ds-btn-text {
       padding: 0 0.5rem;
     }
+    .ds-label {
+      font-size: 0.8125rem; /* 13px — readable labels on mobile */
+    }
   }
 }

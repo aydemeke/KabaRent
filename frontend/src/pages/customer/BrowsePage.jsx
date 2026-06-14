@@ -158,24 +158,17 @@ export default function BrowsePage() {
       <section style={{ padding: '0 0 40px' }}>
         <form
           onSubmit={handleSearch}
+          className="flex flex-col sm:flex-row items-stretch sm:items-center w-full sm:max-w-[700px] mx-auto gap-2 sm:gap-0 rounded-3xl sm:rounded-[50px] sm:h-16"
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
             background: '#ffffff',
-            borderRadius: '50px',
             boxShadow: '0px 8px 40px rgba(1,45,29,0.10)',
             padding: '6px',
-            width: '100%',
-            maxWidth: '700px',
-            margin: '0 auto',
-            height: '64px',
-            gap: 0,
           }}
         >
           {/* Submit button — leftmost in LTR DOM */}
           <button
             type="submit"
+            className="w-full sm:w-auto justify-center sm:justify-start order-3 sm:order-none"
             style={{
               flexShrink: 0,
               background: '#012d1d',
@@ -205,6 +198,7 @@ export default function BrowsePage() {
 
           {/* Return date field */}
           <div
+            className="w-full min-h-[44px] sm:min-h-0 order-2 sm:order-none"
             style={{
               flex: 1,
               padding: '0 20px',
@@ -215,7 +209,7 @@ export default function BrowsePage() {
               position: 'relative',
             }}
           >
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך החזרה (אופציונלי)
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
@@ -236,10 +230,11 @@ export default function BrowsePage() {
             </div>
           </div>
 
-          <div style={{ width: '1px', height: '28px', background: '#c1c8c2', opacity: 0.5, flexShrink: 0 }} />
+          <div className="hidden sm:block" style={{ width: '1px', height: '28px', background: '#c1c8c2', opacity: 0.5, flexShrink: 0 }} />
 
           {/* Event date field */}
           <div
+            className="w-full min-h-[44px] sm:min-h-0 order-1 sm:order-none"
             style={{
               flex: 1,
               padding: '0 20px',
@@ -250,7 +245,7 @@ export default function BrowsePage() {
               position: 'relative',
             }}
           >
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך אירוע
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
@@ -308,6 +303,7 @@ export default function BrowsePage() {
             <button
               key={pill}
               onClick={() => setActiveCategory(pill)}
+              className="min-h-[44px] sm:min-h-0"
               style={{
                 padding: '8px 20px',
                 borderRadius: '999px',
@@ -401,7 +397,7 @@ export default function BrowsePage() {
                   {kaba.category && (
                     <span
                       className="absolute top-5 right-5 font-inter font-semibold uppercase"
-                      style={{ fontSize: '10px', letterSpacing: '0.1em', padding: '5px 13px', borderRadius: '999px', background: 'rgba(255,255,255,0.90)', backdropFilter: 'blur(8px)', color: '#012d1d' }}
+                      style={{ fontSize: '12px', letterSpacing: '0.1em', padding: '5px 13px', borderRadius: '999px', background: 'rgba(255,255,255,0.90)', backdropFilter: 'blur(8px)', color: '#012d1d' }}
                     >
                       {CATEGORY_HE[kaba.category] ?? kaba.category}
                     </span>
@@ -410,7 +406,7 @@ export default function BrowsePage() {
                   {/* Availability badge — top-left */}
                   <span
                     className="absolute top-5 left-5 font-inter font-semibold"
-                    style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '999px', background: inStock ? 'rgba(46,125,50,0.95)' : 'rgba(180,30,30,0.95)', color: 'white' }}
+                    style={{ fontSize: '12px', padding: '4px 12px', borderRadius: '999px', background: inStock ? 'rgba(46,125,50,0.95)' : 'rgba(180,30,30,0.95)', color: 'white' }}
                   >
                     {inStock ? 'זמין' : 'אזל המלאי'}
                   </span>
@@ -429,7 +425,7 @@ export default function BrowsePage() {
                     {kaba.size && (
                       <span
                         className="self-start font-inter font-medium"
-                        style={{ fontSize: '11px', padding: '3px 11px', borderRadius: '999px', background: '#f3f4f3', color: '#414844', letterSpacing: '0.04em' }}
+                        style={{ fontSize: '12px', padding: '3px 11px', borderRadius: '999px', background: '#f3f4f3', color: '#414844', letterSpacing: '0.04em' }}
                       >
                         מידה {SIZE_HE[kaba.size] ?? kaba.size}
                       </span>
