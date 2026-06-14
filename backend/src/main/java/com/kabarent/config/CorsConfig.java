@@ -22,7 +22,7 @@ public class CorsConfig {
         // Allowed origins (Make sure the Vercel URL is exact and has no trailing slash)
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
-                "https://kabarent.vercel.app"
+                "https://kaba-rent.vercel.app"
         ));
 
         // Allow all headers (Authorization, Content-Type, etc.)
