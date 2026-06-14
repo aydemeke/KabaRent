@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAll, getAvailable } from '../../api/kabas'
 import Spinner from '../../components/Spinner'
@@ -479,10 +479,9 @@ export default function BrowsePage() {
 
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           {HOW_IT_WORKS.map(({ title, icon }, i) => (
-            <>
+            <Fragment key={title}>
               {i > 0 && (
                 <span
-                  key={`arrow-${i}`}
                   className="hidden sm:inline"
                   style={{ color: '#c1c8c2', fontSize: '15px', lineHeight: 1, userSelect: 'none', flexShrink: 0 }}
                 >
@@ -490,7 +489,6 @@ export default function BrowsePage() {
                 </span>
               )}
               <div
-                key={title}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}
               >
                 <StepIcon type={icon} />
@@ -498,7 +496,7 @@ export default function BrowsePage() {
                   {title}
                 </span>
               </div>
-            </>
+            </Fragment>
           ))}
         </div>
       </div>
