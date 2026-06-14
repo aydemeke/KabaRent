@@ -83,7 +83,8 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
             </p>
             <div
               dir="rtl"
-              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 12px' }}
+              className="grid grid-cols-1 sm:grid-cols-2"
+              style={{ gap: '5px 12px' }}
             >
               {packageItems.map((item, i) => (
                 <div
@@ -145,7 +146,11 @@ export default function KabaDetailModal({ kaba, onBook, onClose }) {
                 fontSize: '13px',
                 color: '#9CA3AF',
                 cursor: 'pointer',
-                padding: '2px 8px',
+                minHeight: '44px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 16px',
               }}
               onMouseEnter={e => e.currentTarget.style.color = '#6B7280'}
               onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}

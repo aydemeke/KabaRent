@@ -334,6 +334,7 @@ export default function BrowsePage() {
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
+            className="min-h-[44px] sm:min-h-0"
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '13px',

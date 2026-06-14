@@ -95,3 +95,7 @@ node "../.claude/skills/ui-check/ui-check.mjs" --selector=nav --channel=chrome
 - **`EADDRINUSE`** means a dev server is already running; `pkill -f vite` first.
 - **First paint is slow.** Vite compiles routes on demand; the script waits on
   the selector / DOM, so don't add `sleep`.
+- **Git Bash mangles `--route=/`.** On Windows Git Bash (MSYS), a leading-slash
+  argument is path-converted (e.g. `--route=/` becomes `--route=C:/Program Files/Git/`),
+  so the screenshot ends up on the wrong URL. Prefix the command with
+  `MSYS_NO_PATHCONV=1`, or run the driver from PowerShell, which doesn't convert paths.

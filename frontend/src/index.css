@@ -187,4 +187,24 @@ button, input, select, textarea, label, a {
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
+
+  /* Touch targets: tappable controls are at least 44px tall on mobile
+     (below the sm/640px breakpoint). Desktop sizes stay compact. */
+  @media (max-width: 639px) {
+    .ds-input,
+    .ds-select {
+      min-height: 44px;
+    }
+    .ds-btn-primary,
+    .ds-btn-ghost,
+    .ds-btn-text {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ds-btn-text {
+      padding: 0 0.5rem;
+    }
+  }
 }

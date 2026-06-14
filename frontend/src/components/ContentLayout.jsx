@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom'
 
 export const titleStyle = {
   fontFamily: "'Plus Jakarta Sans', sans-serif",
-  fontSize: '32px',
   fontWeight: 700,
   color: '#012d1d',
   letterSpacing: '-0.01em',
@@ -77,7 +76,7 @@ export default function ContentLayout({ title, children }) {
       }}
     >
       <div
-        className="bg-white"
+        className="bg-white p-5 sm:p-12"
         onClick={e => e.stopPropagation()}
         style={{
           position: 'relative',
@@ -85,7 +84,6 @@ export default function ContentLayout({ title, children }) {
           width: '100%',
           margin: 'auto',
           borderRadius: '2rem',
-          padding: '48px',
           boxShadow: '0 8px 40px rgba(1,45,29,0.18)',
         }}
       >
@@ -98,8 +96,8 @@ export default function ContentLayout({ title, children }) {
             position: 'absolute',
             top: '20px',
             left: '20px',
-            width: '36px',
-            height: '36px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -119,7 +117,7 @@ export default function ContentLayout({ title, children }) {
           </svg>
         </button>
 
-        <h1 style={titleStyle}>{title}</h1>
+        <h1 className="text-2xl sm:text-[2rem]" style={titleStyle}>{title}</h1>
         {children}
       </div>
     </div>
