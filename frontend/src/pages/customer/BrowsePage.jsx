@@ -209,17 +209,18 @@ export default function BrowsePage() {
               position: 'relative',
             }}
           >
-            <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+            <label htmlFor="search-return-date" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך החזרה (אופציונלי)
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#012d1d" strokeWidth={2} style={{ flexShrink: 0 }}>
+            </label>
+            <div className="kr-datefield" style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#012d1d" strokeWidth={2} style={{ flexShrink: 0 }} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span style={{ fontSize: '13px', fontWeight: 500, color: returnDate ? '#1a1c1c' : '#c1c8c2', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
                 {returnDate ? returnDate.split('-').reverse().join('/') : 'בחר תאריך'}
               </span>
               <input
+                id="search-return-date"
                 type="date"
                 value={returnDate}
                 min={eventDate || new Date().toISOString().split('T')[0]}
@@ -245,17 +246,18 @@ export default function BrowsePage() {
               position: 'relative',
             }}
           >
-            <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+            <label htmlFor="search-event-date" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#717973', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך אירוע
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#012d1d" strokeWidth={2} style={{ flexShrink: 0 }}>
+            </label>
+            <div className="kr-datefield" style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#012d1d" strokeWidth={2} style={{ flexShrink: 0 }} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span style={{ fontSize: '13px', fontWeight: 500, color: eventDate ? '#1a1c1c' : '#c1c8c2', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
                 {eventDate ? eventDate.split('-').reverse().join('/') : 'בחר תאריך'}
               </span>
               <input
+                id="search-event-date"
                 type="date"
                 value={eventDate}
                 min={new Date().toISOString().split('T')[0]}
@@ -324,10 +326,11 @@ export default function BrowsePage() {
 
         {/* Sort dropdown — left (RTL end) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#717973', whiteSpace: 'nowrap' }}>
+          <label htmlFor="sort-by" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#717973', whiteSpace: 'nowrap' }}>
             מיון לפי:
-          </span>
+          </label>
           <select
+            id="sort-by"
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
             className="min-h-[44px] sm:min-h-0"
@@ -340,7 +343,6 @@ export default function BrowsePage() {
               padding: '6px 10px',
               background: 'white',
               cursor: 'pointer',
-              outline: 'none',
             }}
           >
             <option value="price-asc">מחיר: נמוך לגבוה</option>

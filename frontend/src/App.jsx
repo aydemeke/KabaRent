@@ -45,7 +45,10 @@ function AppLayout() {
   const isAdmin = pathname.startsWith('/admin')
 
   return (
-    <div className={`min-h-screen flex flex-col${!isAdmin ? ' customer-bg' : ''}`}>
+    <div
+      dir={isAdmin ? 'ltr' : 'rtl'}
+      className={`min-h-screen flex flex-col${!isAdmin ? ' customer-bg' : ''}`}
+    >
       <ScrollToTop />
       <Navbar />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 pt-0 pb-6">

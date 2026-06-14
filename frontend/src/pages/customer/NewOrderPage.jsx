@@ -118,6 +118,7 @@ export default function NewOrderPage() {
             onChange={e => setKabaId(e.target.value)}
             required
             disabled={kabas.length === 0}
+            aria-label="בחר קאבה"
             className="ds-select"
             style={kabas.length === 0 ? { background: '#e2e2e2', color: '#414844' } : undefined}
           >
@@ -139,8 +140,9 @@ export default function NewOrderPage() {
         <SectionCard step="2" title="תאריכי השכרה">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="ds-label block mb-1.5">תאריך אירוע</label>
+              <label htmlFor="order-event-date" className="ds-label block mb-1.5">תאריך אירוע</label>
               <DateInput
+                id="order-event-date"
                 value={eventDate}
                 placeholder="בחר תאריך"
                 min={today}
@@ -151,8 +153,9 @@ export default function NewOrderPage() {
               />
             </div>
             <div>
-              <label className="ds-label block mb-1.5">תאריך החזרה</label>
+              <label htmlFor="order-return-date" className="ds-label block mb-1.5">תאריך החזרה</label>
               <DateInput
+                id="order-return-date"
                 value={returnDate}
                 placeholder="בחר תאריך"
                 min={eventDate || today}
@@ -180,8 +183,9 @@ export default function NewOrderPage() {
           {availability?.available && (
             <div className="mt-4 flex items-center gap-6">
               <div>
-                <label className="ds-label block mb-1.5">כמות</label>
+                <label htmlFor="order-quantity" className="ds-label block mb-1.5">כמות</label>
                 <input
+                  id="order-quantity"
                   type="number" min={1} max={availability.availableQuantity}
                   value={quantity}
                   onChange={e => setQuantity(Number(e.target.value))}
@@ -203,8 +207,9 @@ export default function NewOrderPage() {
         <SectionCard step="3" title="פרטי לקוח">
           <div className="space-y-4">
             <div>
-              <label className="ds-label block mb-1.5">שם מלא</label>
+              <label htmlFor="order-fullname" className="ds-label block mb-1.5">שם מלא</label>
               <input
+                id="order-fullname"
                 type="text" value={fullName} required
                 onChange={e => setFullName(e.target.value)}
                 placeholder="לדוגמה: שרה כהן"
@@ -213,8 +218,9 @@ export default function NewOrderPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="ds-label block mb-1.5">טלפון</label>
+                <label htmlFor="order-phone" className="ds-label block mb-1.5">טלפון</label>
                 <input
+                  id="order-phone"
                   type="tel" value={phone} required
                   onChange={e => setPhone(e.target.value)}
                   placeholder="050-0000000"
@@ -222,8 +228,9 @@ export default function NewOrderPage() {
                 />
               </div>
               <div>
-                <label className="ds-label block mb-1.5">אימייל</label>
+                <label htmlFor="order-email" className="ds-label block mb-1.5">אימייל</label>
                 <input
+                  id="order-email"
                   type="email" value={email} required
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
@@ -232,8 +239,9 @@ export default function NewOrderPage() {
               </div>
             </div>
             <div>
-              <label className="ds-label block mb-1.5">הערות (אופציונלי)</label>
+              <label htmlFor="order-notes" className="ds-label block mb-1.5">הערות (אופציונלי)</label>
               <textarea
+                id="order-notes"
                 value={notes} rows={2}
                 onChange={e => setNotes(e.target.value)}
                 placeholder="בקשות מיוחדות..."
