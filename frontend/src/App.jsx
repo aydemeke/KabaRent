@@ -2,21 +2,22 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-import AdminGuard from './components/AdminGuard'
+import AdminGuard from './components/AdminGuard',
+import React, { Suspense } from 'react'
 
 // Customer pages
 import BrowsePage from './pages/customer/BrowsePage'
 import NewOrderPage from './pages/customer/NewOrderPage'
 import OrderStatusPage from './pages/customer/OrderStatusPage'
 
-// Content / info pages
-import AboutPage from './pages/content/AboutPage'
-import HowItWorksPage from './pages/content/HowItWorksPage'
-import FaqPage from './pages/content/FaqPage'
-import ContactPage from './pages/content/ContactPage'
-import RentalTermsPage from './pages/content/RentalTermsPage'
-import ReturnsPage from './pages/content/ReturnsPage'
-import PrivacyPage from './pages/content/PrivacyPage'
+// Content / info pages using Lazy Loading
+const AboutPage = React.lazy(() => import('./pages/content/AboutPage'));
+const HowItWorksPage = React.lazy(() => import('./pages/content/HowItWorksPage'));
+const FaqPage = React.lazy(() => import('./pages/content/FaqPage'));
+const ContactPage = React.lazy(() => import('./pages/content/ContactPage'));
+const RentalTermsPage = React.lazy(() => import('./pages/content/RentalTermsPage'));
+const ReturnsPage = React.lazy(() => import('./pages/content/ReturnsPage'));
+const PrivacyPage = React.lazy(() => import('./pages/content/PrivacyPage'));
 
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
