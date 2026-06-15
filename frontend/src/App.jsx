@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigationType } from 're
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import AdminGuard from './components/AdminGuard'
+import ColdStartIndicator from './components/ColdStartIndicator'
 import RequireCustomer from './auth/RequireCustomer'
 
 // Customer pages
@@ -55,6 +56,7 @@ function AppLayout() {
       className={`min-h-screen flex flex-col${!isAdmin ? ' customer-bg' : ''}`}
     >
       <ScrollToTop />
+      <ColdStartIndicator />
       <Navbar />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 pt-0 pb-6">
         {/* עטיפת ה-Routes ב-Suspense כדי לתמוך ב-Lazy Loading */}

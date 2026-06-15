@@ -35,6 +35,7 @@ com\kabarent\dto\request\CreateOrderRequest.class
 com\kabarent\dto\response\OrderResponse.class
 com\kabarent\dto\response\CustomerResponse.class
 com\kabarent\model\Customer.class
+com\kabarent\controller\HealthController.class
 com\kabarent\service\AvailabilityService.class
 com\kabarent\controller\MyOrderController.class
 com\kabarent\exception\AvailabilityException.class

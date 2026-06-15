@@ -35,6 +35,7 @@ C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kab
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\exception\EmailAlreadyRegisteredException.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\model\Customer.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\security\JwtAuthenticationFilter.java
+C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\controller\HealthController.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\response\AvailabilityResponse.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\response\KabaResponse.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\service\AuthService.java

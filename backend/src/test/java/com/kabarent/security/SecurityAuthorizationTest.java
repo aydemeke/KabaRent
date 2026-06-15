@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -31,7 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(controllers = {
         OrderController.class, CustomerController.class, KabaController.class,
-        PaymentController.class, MyOrderController.class, AuthController.class
+        PaymentController.class, MyOrderController.class, AuthController.class,
+        HealthController.class
 })
 @Import({SecurityConfig.class, CorsConfig.class, JwtAuthenticationFilter.class, JwtService.class})
 class SecurityAuthorizationTest {
@@ -108,6 +110,13 @@ class SecurityAuthorizationTest {
     void publicCatalog_noToken_isAllowed() throws Exception {
         when(kabaService.listActiveKabas(null, null)).thenReturn(List.of());
         mockMvc.perform(get("/api/kabas")).andExpect(status().isOk());
+    }
+
+    @Test
+    void health_noToken_isOk() throws Exception {
+        mockMvc.perform(get("/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
     }
 
     @Test
