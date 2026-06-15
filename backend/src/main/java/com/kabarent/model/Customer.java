@@ -1,5 +1,6 @@
 package com.kabarent.model;
 
+import com.kabarent.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +32,19 @@ public class Customer {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /**
+     * BCrypt hash. Nullable: guest customers (created via order checkout) have no
+     * password and cannot log in, but remain valid order customers. Set when a guest
+     * registers, upgrading the same row to a real account.
+     */
+    @Column(name = "password_hash", length = 100)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    @Builder.Default
+    private Role role = Role.CUSTOMER;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default

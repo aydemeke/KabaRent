@@ -10,10 +10,10 @@ A full-stack rental management system for traditional Ethiopian Kaba garments, b
 
 | Layer | Technology |
 |---|---|
-| **Backend** | Java 21, Spring Boot 3, Spring Data JPA / Hibernate, Lombok |
+| **Backend** | Java 21, Spring Boot 3, Spring Data JPA / Hibernate, Spring Security 6 (stateless JWT via JJWT), Lombok |
 | **Database** | PostgreSQL |
 | **Frontend** | React 19, Vite, Tailwind CSS, React Router v7, Axios |
-| **Testing** | JUnit 5, Mockito, AssertJ, Testcontainers (PostgreSQL) |
+| **Testing** | JUnit 5, Mockito, AssertJ, Spring Security Test, Testcontainers (PostgreSQL) |
 | **Build** | Maven (backend), npm (frontend) |
 
 ---
@@ -130,13 +130,26 @@ docker run --name kabarent-db -e POSTGRES_DB=kabarent \
   -p 5432:5432 -d postgres:16-alpine
 ```
 
-Hibernate (`ddl-auto=update`) creates the schema automatically on first startup, and **data persists** across restarts. There is no seed data — add inventory and customers through the admin dashboard.
+Hibernate (`ddl-auto=update`) creates the schema automatically on first startup (including the new
+`password_hash` and `role` columns on `customers`), and **data persists** across restarts. There is no
+seed data — add inventory and customers through the admin dashboard.
+
+### Auth configuration (environment variables)
+
+Authentication is on by default and fail-closed. Configure these via environment (safe local-dev
+fallbacks exist in `application.properties`, but production must override them):
+
+| Variable | Purpose |
+|---|---|
+| `JWT_SECRET` | HMAC signing key for JWTs (≥ 32 bytes). |
+| `ADMIN_EMAIL` | Email of the admin account to seed (default `admin@kabarent.local`). |
+| `ADMIN_PASSWORD` | Admin password. **Blank by default → admin seeding is skipped.** Set it to create/seed the admin on startup. No plaintext admin password is committed. |
 
 ### Run the Backend
 
 ```bash
 cd backend
-mvn spring-boot:run
+ADMIN_PASSWORD=change-me mvn spring-boot:run     # seeds the admin user on first startup
 ```
 
 - API runs on **http://localhost:8080**
@@ -166,45 +179,67 @@ mvn test
 
 ## API Endpoints
 
+**Access tiers** (enforced by Spring Security, fail-closed — anything not listed as public requires a
+valid JWT): **Public** = no login; **Customer** = `ROLE_CUSTOMER` (own data only); **Admin** = `ROLE_ADMIN`.
+Authenticate via `/api/auth/**` and send the returned token as `Authorization: Bearer <jwt>`.
+
+### Auth
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Public | Register an account; returns a JWT. Upgrades an existing guest (same email) in place, linking their past orders. 409 if the email already has an account. |
+| `POST` | `/api/auth/login` | Public | Authenticate; returns `{ token, customerId, fullName, email, role }`. |
+
+### My Orders (customer self-service)
+
+The `customerId` is always derived from the JWT — never from the request.
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/my/orders` | Customer | List the authenticated customer's orders |
+| `GET` | `/api/my/orders/{id}` | Customer | Get one of the customer's orders (404 if not theirs) |
+| `GET` | `/api/my/orders/{id}/balance` | Customer | Payment balance for the customer's own order |
+| `POST` | `/api/my/orders/{id}/cancel` | Customer | Cancel — **PENDING orders only** (confirmed orders go through admin) |
+
 ### Kabas
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/kabas?category=&size=` | List active Kabas (optional category/size filters) |
-| `GET` | `/api/kabas/{id}` | Get a single Kaba |
-| `GET` | `/api/kabas/available?eventDate=&returnDate=` | List Kabas with availability in the range |
-| `GET` | `/api/kabas/{id}/availability?eventDate=&returnDate=` | Check one Kaba's availability |
-| `POST` | `/api/kabas` | Create a Kaba |
-| `PUT` | `/api/kabas/{id}` | Update a Kaba |
-| `DELETE` | `/api/kabas/{id}` | Soft-delete a Kaba (`active = false`) |
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/kabas?category=&size=` | Public | List active Kabas (optional category/size filters) |
+| `GET` | `/api/kabas/{id}` | Public | Get a single Kaba |
+| `GET` | `/api/kabas/available?eventDate=&returnDate=` | Public | List Kabas with availability in the range |
+| `GET` | `/api/kabas/{id}/availability?eventDate=&returnDate=` | Public | Check one Kaba's availability |
+| `POST` | `/api/kabas` | Admin | Create a Kaba |
+| `PUT` | `/api/kabas/{id}` | Admin | Update a Kaba |
+| `DELETE` | `/api/kabas/{id}` | Admin | Soft-delete a Kaba (`active = false`) |
 
-### Customers
+### Customers (Admin)
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/customers` | List all customers |
-| `GET` | `/api/customers/{id}` | Get a single customer |
-| `POST` | `/api/customers` | Create or find a customer by email |
-| `PUT` | `/api/customers/{id}` | Update a customer |
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/customers` | Admin | List all customers |
+| `GET` | `/api/customers/{id}` | Admin | Get a single customer |
+| `POST` | `/api/customers` | Admin | Create or find a customer by email |
+| `PUT` | `/api/customers/{id}` | Admin | Update a customer |
 
 ### Orders
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/orders?status=` | List all orders (optional status filter) |
-| `GET` | `/api/orders/{id}` | Get order details (with items) |
-| `GET` | `/api/orders/customer/{customerId}` | List a customer's orders |
-| `POST` | `/api/orders` | Place a new order |
-| `PUT` | `/api/orders/{id}/status` | Update order status |
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/orders` | Public | Place an order. Guest checkout supplies `customer: { fullName, phone, email }` (find-or-created by email); admin/known flows may pass `customerId`. |
+| `GET` | `/api/orders?status=` | Admin | List all orders (optional status filter) |
+| `GET` | `/api/orders/{id}` | Admin | Get order details (with items) — **not public** (sequential ids); customers use `/api/my/orders/{id}` |
+| `GET` | `/api/orders/customer/{customerId}` | Admin | List a customer's orders |
+| `PUT` | `/api/orders/{id}/status` | Admin | Update order status |
 
-### Payments
+### Payments (Admin)
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/payments` | List all payments |
-| `GET` | `/api/payments/order/{orderId}` | Payments for a specific order |
-| `GET` | `/api/payments/order/{orderId}/balance` | Balance summary `{ totalPrice, totalPaid, remainingBalance, isFullyPaid }` |
-| `POST` | `/api/payments` | Record a payment |
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/payments` | Admin | List all payments |
+| `GET` | `/api/payments/order/{orderId}` | Admin | Payments for a specific order |
+| `GET` | `/api/payments/order/{orderId}/balance` | Admin | Balance summary `{ totalPrice, totalPaid, remainingBalance, isFullyPaid }` |
+| `POST` | `/api/payments` | Admin | Record a payment |
 
 ---
 
@@ -216,6 +251,8 @@ mvn test
 - **Quantity-based availability** — multiple units per Kaba; bookings are tracked per overlapping date range
 - **Order lifecycle** — status transitions managed from the admin dashboard, with a confirm-time row lock to prevent overbooking
 - **Split payments** — an order can receive multiple partial payments; the total cannot exceed the order price
+- **Customer accounts** — register/login (Hebrew RTL); "My Orders" shows a customer's own orders, balances, and lets them self-cancel pending orders. Guest checkout still works and links to the account on registration (same email)
+- **Real admin authentication** — Spring Security + JWT; the admin area requires a `ROLE_ADMIN` login
 - **Admin dashboard** — manages inventory, orders, customers, and payments
 - **Hebrew (RTL) customer portal** — including footer-linked info pages (about, FAQ, contact, terms, returns, privacy)
 
@@ -232,14 +269,17 @@ mvn test
   - `CONFIRMED → ACTIVE` or `CANCELLED`
   - `ACTIVE → COMPLETED`
   - `COMPLETED` and `CANCELLED` are terminal (an `ACTIVE` order cannot be cancelled)
-- Customers are matched by email — a returning customer reuses their existing record
+- Customers are matched by email — a returning customer reuses their existing record; registering with a guest's email upgrades that same record to an account (linking past orders)
+- API access is fail-closed across three tiers (public / `ROLE_CUSTOMER` / `ROLE_ADMIN`); `customerId` is always derived from the JWT, and customers can only see/cancel their own orders
+- Customer self-cancellation is limited to `PENDING` orders; cancelling a `CONFIRMED` order must go through admin
 
 ---
 
 ## Known Limitations
 
-- **No real authentication.** The admin gate (`AdminGuard`) stores a flag in `sessionStorage` but does **not** validate the entered password — any input unlocks the admin area. It is a placeholder, not security.
-- **Hardcoded database credentials** are committed in `application.properties`.
+- **No password reset.** A registered user who forgets their password is locked out — there is no reset/forgot-password flow, and re-registering the same email returns 409. (Backlog.)
+- **No login rate limiting.** `POST /api/auth/login` is not throttled, so it is exposed to credential brute-force/stuffing. (Backlog.)
+- **Hardcoded database credentials** are committed in `application.properties` (the JWT secret and admin password are externalized to env, but DB creds are not yet).
 - **No schema migrations** (no Flyway/Liquibase); schema is driven by Hibernate `ddl-auto=update`.
 - **No database indexes** beyond the unique constraint on `customers.email`.
 - Kaba images are referenced by URL/static path; there is no server-side image upload.
@@ -248,7 +288,10 @@ mvn test
 
 ## Roadmap / Next Steps
 
-- [ ] Replace the placeholder admin gate with real authentication (e.g. JWT)
+- [x] Replace the placeholder admin gate with real authentication (Spring Security + JWT)
+- [x] Customer accounts + self-service order viewing/cancellation (`/api/my/**`)
+- [ ] Add a password-reset / forgot-password flow
+- [ ] Rate-limit `POST /api/auth/login`
 - [ ] Move DB credentials to environment variables / secrets
 - [ ] Introduce schema migrations (Flyway or Liquibase)
 - [ ] Add indexes for date-overlap availability queries

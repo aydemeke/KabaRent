@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { getById } from '../../api/orders'
+import { useParams, useLocation, useNavigate, Link } from 'react-router-dom'
+import { getMyOrder } from '../../api/orders'
+import { useAuth } from '../../auth/useAuth'
 import StatusBadge from '../../components/StatusBadge'
 import Spinner from '../../components/Spinner'
 
@@ -32,15 +33,29 @@ function Row({ label, value }) {
 
 export default function OrderStatusPage() {
   const { id } = useParams()
-  const [order, setOrder] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
+
+  // Just after checkout the order arrives via router state → render with no fetch.
+  const stateOrder = location.state?.order
+  const [order, setOrder] = useState(stateOrder ?? null)
+  const [loading, setLoading] = useState(!stateOrder)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    getById(id)
+    if (order) return // already have it (from router state)
+    if (!isLoggedIn) {
+      // Cold visit (e.g. refresh) with no session: order reads are not public, so send the
+      // visitor to register/login — which links their orders by email — and return here after.
+      navigate(`/register?redirect=${encodeURIComponent(location.pathname)}`, { replace: true })
+      return
+    }
+    getMyOrder(id)
       .then(setOrder)
       .catch(() => setError('ההזמנה לא נמצאה.'))
       .finally(() => setLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   if (loading) return <Spinner />

@@ -1,10 +1,13 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { useAuth } from '../auth/useAuth'
 
 export default function Navbar() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const isAdmin = pathname.startsWith('/admin')
   const [menuOpen, setMenuOpen] = useState(false)
+  const { isLoggedIn, isAdmin: isAdminUser, logout } = useAuth()
 
   function active(path) {
     const match = path === '/' ? pathname === '/' : pathname.startsWith(path)
@@ -13,6 +16,13 @@ export default function Navbar() {
       : 'text-on-surface-variant hover:text-on-surface transition-colors'
   }
 
+  function handleLogout(to) {
+    logout()
+    navigate(to, { replace: true })
+  }
+
+  const linkBtn = 'text-on-surface-variant hover:text-on-surface transition-colors bg-transparent border-none cursor-pointer font-inter font-medium text-sm p-0'
+
   const navLinks = isAdmin ? (
     <>
       <Link to="/admin"            className={active('/admin')}>Dashboard</Link>
@@ -20,6 +30,7 @@ export default function Navbar() {
       <Link to="/admin/orders"     className={active('/admin/orders')}>Orders</Link>
       <Link to="/admin/customers"  className={active('/admin/customers')}>Customers</Link>
       <Link to="/admin/payments"   className={active('/admin/payments')}>Payments</Link>
+      <button type="button" onClick={() => handleLogout('/')} className={`${linkBtn} sm:ml-2`}>Logout</button>
       <Link
         to="/"
         className="text-xs text-on-surface-variant hover:text-on-surface transition-colors opacity-60 hover:opacity-100 sm:ml-2"
@@ -28,7 +39,20 @@ export default function Navbar() {
       </Link>
     </>
   ) : (
-    <Link to="/order/new" className={active('/order/new')}>הזמנה חדשה</Link>
+    <>
+      <Link to="/order/new" className={active('/order/new')}>הזמנה חדשה</Link>
+      {isLoggedIn && !isAdminUser ? (
+        <>
+          <Link to="/customer/orders" className={active('/customer/orders')}>ההזמנות שלי</Link>
+          <button type="button" onClick={() => handleLogout('/')} className={linkBtn}>התנתקות</button>
+        </>
+      ) : (
+        <>
+          <Link to="/login" className={active('/login')}>כניסה</Link>
+          <Link to="/register" className={active('/register')}>הרשמה</Link>
+        </>
+      )}
+    </>
   )
 
   return (

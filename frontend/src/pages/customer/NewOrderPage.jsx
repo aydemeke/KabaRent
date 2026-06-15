@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getAll, checkAvailability } from '../../api/kabas'
-import { create as createCustomer } from '../../api/customers'
 import { create as createOrder } from '../../api/orders'
+import { useAuth } from '../../auth/useAuth'
 import Spinner from '../../components/Spinner'
 import DateInput from '../../components/DateInput'
 
@@ -39,6 +39,7 @@ function SectionCard({ step, title, children }) {
 export default function NewOrderPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { user } = useAuth()
 
   const [kabas, setKabas] = useState([])
   const [kabaId, setKabaId] = useState(searchParams.get('kabaId') || '')
@@ -47,9 +48,11 @@ export default function NewOrderPage() {
   const [availability, setAvailability] = useState(null)
   const [quantity, setQuantity] = useState(1)
 
-  const [fullName, setFullName] = useState('')
+  // Prefill identity for logged-in customers so the order links to their account
+  // (the order is find-or-created by email; a matching email attaches it to their record).
+  const [fullName, setFullName] = useState(user?.fullName || '')
   const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(user?.email || '')
   const [notes, setNotes] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
@@ -87,13 +90,15 @@ export default function NewOrderPage() {
     }
     setSubmitting(true)
     try {
-      const customer = await createCustomer({ fullName, phone, email })
+      // Guest checkout: the customer is find-or-created by email on the public order endpoint.
       const order = await createOrder({
-        customerId: customer.id,
+        customer: { fullName, phone, email },
         eventDate, returnDate, notes,
         items: [{ kabaId: Number(kabaId), quantity }],
       })
-      navigate(`/order/${order.id}`)
+      // Pass the created order via router state so the status page renders without a fetch
+      // (GET /api/orders/{id} is admin-only; sequential ids must never be publicly readable).
+      navigate(`/order/${order.id}`, { state: { order } })
     } catch (err) {
       setError(err.response?.data?.error || 'אירעה שגיאה. אנא נסה שוב.')
     } finally {

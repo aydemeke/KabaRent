@@ -13,8 +13,15 @@ import java.util.List;
 @Data
 public class CreateOrderRequest {
 
-    @NotNull(message = "Customer ID is required")
+    /**
+     * Existing customer id (used by admin / known-customer flows). Optional: guest checkout
+     * instead supplies {@link #customer} details, which are find-or-created by email server-side.
+     */
     private Long customerId;
+
+    /** Guest checkout customer details (find-or-create by email). Required when {@link #customerId} is absent. */
+    @Valid
+    private CustomerRequest customer;
 
     @NotNull(message = "Event date is required")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

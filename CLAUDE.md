@@ -43,13 +43,20 @@ npm run lint
 Standard layered architecture: `Controller → Service → Repository → PostgreSQL (JPA)`
 
 **Packages under `com.kabarent`:**
-- `controller/` — REST controllers for `Kaba`, `Order`, `Customer`, `Payment`
-- `service/` — Business logic; `AvailabilityService` is the most critical (prevents double-booking)
+- `controller/` — REST controllers for `Kaba`, `Order`, `Customer`, `Payment`; plus `AuthController` (`/api/auth/**`) and `MyOrderController` (`/api/my/**`, customer self-service)
+- `service/` — Business logic; `AvailabilityService` is the most critical (prevents double-booking); `AuthService` handles register/login
 - `repository/` — Spring Data JPA interfaces; `OrderItemRepository` has custom JPQL queries for date-overlap detection, and `KabaRepository.findByIdWithLock` takes a pessimistic write lock
-- `model/` — JPA entities: `Kaba`, `Customer`, `Order`, `OrderItem`, `Payment` + enums
+- `model/` — JPA entities: `Kaba`, `Customer`, `Order`, `OrderItem`, `Payment` + enums (incl. `Role`). `Customer` has nullable `passwordHash` (BCrypt) and `role` (CUSTOMER/ADMIN)
+- `security/` — `SecurityConfig` filter chain (fail-closed), `JwtService`, `JwtAuthenticationFilter`, `CustomerUserDetailsService`, `CustomerPrincipal` (carries `customerId`)
 - `dto/request/` & `dto/response/` — API boundary DTOs (validation annotations on request DTOs)
-- `exception/` — `GlobalExceptionHandler` (@RestControllerAdvice) maps domain exceptions to HTTP status codes
-- `config/` — `CorsConfig` (allows `localhost:5173`), `DataInitializer` (currently an empty placeholder)
+- `exception/` — `GlobalExceptionHandler` (@RestControllerAdvice) maps domain exceptions to HTTP status codes (incl. 401/403)
+- `config/` — `CorsConfig` (`CorsConfigurationSource` consumed by Spring Security), `SecurityConfig`, `DataInitializer` (seeds the admin user from env via `CommandLineRunner`)
+
+**Authorization (Spring Security 6, stateless JWT) — fail closed (`anyRequest().authenticated()`):**
+- **Public:** `POST /api/auth/**`, `GET /api/kabas/**`, `POST /api/orders` (guest checkout).
+- **ROLE_CUSTOMER:** `/api/my/**` only.
+- **ROLE_ADMIN:** everything else — `GET/PUT /api/orders/**` (incl. `GET /api/orders/{id}`, which is **never public** because ids are sequential), `/api/customers/**`, `/api/payments/**`, and kaba mutations.
+- **Security-critical:** `customerId` is **always** derived from the JWT principal (`CustomerPrincipal`), never from a request parameter; every `/api/my/**` access is ownership-checked (mismatch → 404).
 
 **Key business rules:**
 - Availability is **quantity-based**: each Kaba has a `quantity`, and a date range is bookable while booked units stay below that quantity. Only `CONFIRMED` and `ACTIVE` orders consume inventory; `PENDING` and `CANCELLED` do not.
@@ -60,7 +67,8 @@ Standard layered architecture: `Controller → Service → Repository → Postgr
   - `ACTIVE → COMPLETED`
   - `COMPLETED` and `CANCELLED` are **terminal** (no transitions out). In particular, an `ACTIVE` order **cannot** be cancelled.
 - Payments are split-allowed but the sum of `COMPLETED` payments cannot exceed the order's `totalPrice`; fully-paid orders reject further payments.
-- Customers are **find-or-create by email**: `CustomerService.findOrCreateByEmail` returns the existing customer for a known email or creates a new one, avoiding `UNIQUE(email)` violations for returning customers.
+- Customers are **find-or-create by email**: `CustomerService.findOrCreateByEmail` returns the existing customer for a known email or creates a new one, avoiding `UNIQUE(email)` violations for returning customers. Guest checkout (`POST /api/orders`) passes `customer` details and find-or-creates server-side; registering with a guest's email **upgrades that same row in place** (sets `passwordHash`), which auto-links the guest's past orders to the account.
+- **Customer self-cancel** (`POST /api/my/orders/{id}/cancel`) is restricted to **PENDING** orders only; CONFIRMED orders must be cancelled by admin. (Cancelling a PENDING order releases no inventory, since PENDING reserves none.)
 - Kabas use soft delete (`active` boolean); they remain in DB but are hidden from customer/active views.
 
 **Data relationships:**
@@ -74,11 +82,12 @@ Order (1) → (∞) Payment
 **Routing** (`App.jsx` with React Router v7):
 - `/` — `BrowsePage` (customer landing: search by date, availability grid)
 - `/order/new` — `NewOrderPage` (multi-step booking, reads `kabaId`/`eventDate`/`returnDate` from query params)
-- `/order/:id` — `OrderStatusPage` (customer order tracking)
+- `/order/:id` — `OrderStatusPage` (post-checkout: renders the order from router state; on a cold visit with no session it redirects to `/register`, since order reads are not public)
+- `/login`, `/register` — customer auth (Hebrew RTL); `/customer/orders` + `/customer/orders/:id` — "My Orders" (wrapped in `RequireCustomer`)
 - Content/info pages: `/about`, `/how-it-works`, `/faq`, `/contact`, `/rental-terms`, `/returns`, `/privacy` (rendered via the shared `ContentLayout` overlay; reached from the `Footer`)
-- `/admin/*` — All admin pages wrapped in `AdminGuard`
+- `/admin/*` — All admin pages wrapped in `AdminGuard` (now a real `ROLE_ADMIN` JWT login, not a placeholder)
 
-**API layer** (`src/api/`): All HTTP calls are wrapped in per-resource modules (`kabas.js`, `orders.js`, `customers.js`, `payments.js`) using a shared `axiosInstance.js` pointed at `http://localhost:8080/api`.
+**API layer** (`src/api/`): All HTTP calls are wrapped in per-resource modules (`kabas.js`, `orders.js`, `customers.js`, `payments.js`, `auth.js`) using a shared `axiosInstance.js` pointed at `http://localhost:8080/api`. The instance attaches `Authorization: Bearer <jwt>` from `auth/authStorage.js` (localStorage) and redirects to `/login` on 401. `auth/useAuth.js` exposes the session to components.
 
 **State management:** No global store. Each page manages its own state with `useState`/`useEffect`.
 
@@ -88,10 +97,11 @@ Order (1) → (∞) Payment
 
 ## Known Limitations
 
-- **No real authentication.** `AdminGuard` is a `sessionStorage` gate that does **not** validate the entered password — any input (including empty) unlocks the admin area. This is a placeholder, not security.
-- **Hardcoded DB credentials** in `application.properties` (`myuser`/`mypassword`), committed to the repo.
+- **No password reset.** A registered user who forgets their password is locked out — there is no reset flow, and re-registering the same email returns 409.
+- **No login rate limiting.** `POST /api/auth/login` is not throttled (brute-force/credential-stuffing risk).
+- **Hardcoded DB credentials** in `application.properties` (`myuser`/`mypassword`), committed to the repo. (The JWT secret and admin password are externalized to env — `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` — with safe local-dev fallbacks; admin seeding is skipped when `ADMIN_PASSWORD` is blank.)
 - **No database indexes** beyond the `UNIQUE` constraint on `customers.email`; date-overlap queries are unindexed.
-- No schema migration tool (e.g. Flyway/Liquibase); schema is managed by Hibernate `ddl-auto=update`.
+- No schema migration tool (e.g. Flyway/Liquibase); schema is managed by Hibernate `ddl-auto=update` (which added the `customers.password_hash` and `role` columns).
 
 ## Code Review Policy
 
@@ -125,3 +135,5 @@ Report review findings before moving to the next task.
 - No business logic in controllers — controllers call services only
 - Every new endpoint must handle 404, 400, and 500 error cases (centralized in `GlobalExceptionHandler`)
 - All service methods must validate input before processing
+- Security is **fail closed**: new endpoints are denied by default and need an explicit matcher in `SecurityConfig`. Place admin operations under `ROLE_ADMIN`; only deliberately public routes are `permitAll`
+- Never trust a client-supplied `customerId` for customer-scoped data — derive it from the JWT principal (`@AuthenticationPrincipal CustomerPrincipal`) and enforce an ownership check

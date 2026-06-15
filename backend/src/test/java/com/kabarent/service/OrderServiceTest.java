@@ -1,6 +1,7 @@
 package com.kabarent.service;
 
 import com.kabarent.dto.request.CreateOrderRequest;
+import com.kabarent.dto.request.CustomerRequest;
 import com.kabarent.dto.request.OrderItemRequest;
 import com.kabarent.dto.request.UpdateOrderStatusRequest;
 import com.kabarent.dto.response.OrderResponse;
@@ -175,6 +176,39 @@ class OrderServiceTest {
         ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepository).save(captor.capture());
         assertThat(captor.getValue().getTotalPrice()).isEqualByComparingTo("100"); // 100*1*1
+    }
+
+    // O1b — guest checkout: no customerId, customer details find-or-created by email
+    @Test
+    void create_guestCheckout_findsOrCreatesCustomerByEmail() {
+        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
+        req.setCustomerId(null);
+        CustomerRequest guest = new CustomerRequest();
+        guest.setFullName("Sara");
+        guest.setPhone("050");
+        guest.setEmail("s@x.com");
+        req.setCustomer(guest);
+
+        when(customerService.findOrCreateByEmail(guest)).thenReturn(customer());
+        when(kabaService.findOrThrow(1L)).thenReturn(kaba(1L, "Black Gold", "100"));
+        when(availabilityService.isAvailable(1L, req.getEventDate(), req.getReturnDate(), 1)).thenReturn(true);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        orderService.create(req);
+
+        verify(customerService).findOrCreateByEmail(guest);
+        verify(orderRepository).save(any(Order.class));
+    }
+
+    // O1c — neither customerId nor customer details → 400
+    @Test
+    void create_noCustomerIdOrDetails_throwsIllegalArgument() {
+        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
+        req.setCustomerId(null);
+        req.setCustomer(null);
+
+        assertThatThrownBy(() -> orderService.create(req)).isInstanceOf(IllegalArgumentException.class);
+        verify(orderRepository, never()).save(any());
     }
 
     // ---------- updateStatus ----------

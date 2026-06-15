@@ -33,7 +33,7 @@ public class OrderService {
     public OrderResponse create(CreateOrderRequest request) {
         validateDates(request);
 
-        Customer customer = customerService.findOrThrow(request.getCustomerId());
+        Customer customer = resolveCustomer(request);
 
         long rentalDays = ChronoUnit.DAYS.between(request.getEventDate(), request.getReturnDate());
         if (rentalDays < 1) rentalDays = 1;
@@ -127,11 +127,60 @@ public class OrderService {
         return OrderResponse.from(orderRepository.save(order));
     }
 
+    // --- customer self-service (/api/my/**) ---
+
+    /**
+     * Fetches an order the customer owns. If the order does not exist OR belongs to another
+     * customer, a 404 is raised (deliberately not 403 — do not reveal that the id exists).
+     */
+    public OrderResponse getByIdForCustomer(Long orderId, Long customerId) {
+        return OrderResponse.from(findOwnedOrThrow(orderId, customerId));
+    }
+
+    /**
+     * Customer self-cancel. v1 allows cancelling PENDING orders only — CONFIRMED orders may
+     * carry a partial payment and a cancellation policy, so they must go through admin.
+     * (PENDING orders reserve no inventory, so nothing needs to be released.)
+     */
+    @Transactional
+    public OrderResponse cancelForCustomer(Long orderId, Long customerId) {
+        Order order = findOwnedOrThrow(orderId, customerId);
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalArgumentException(
+                    "Only pending orders can be cancelled online. Please contact us to cancel a confirmed order.");
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        return OrderResponse.from(orderRepository.save(order));
+    }
+
+    private Order findOwnedOrThrow(Long orderId, Long customerId) {
+        Order order = findOrThrow(orderId);
+        if (!order.getCustomer().getId().equals(customerId)) {
+            throw new ResourceNotFoundException("Order not found with id: " + orderId);
+        }
+        return order;
+    }
+
     // --- helpers ---
 
     private Order findOrThrow(Long id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+    }
+
+    /**
+     * Resolves the order's customer. Known/admin flows pass {@code customerId}; guest checkout
+     * passes {@code customer} details, which are find-or-created by email (reusing the same row
+     * for returning emails, so the guest's orders later link to their account on registration).
+     */
+    private Customer resolveCustomer(CreateOrderRequest request) {
+        if (request.getCustomerId() != null) {
+            return customerService.findOrThrow(request.getCustomerId());
+        }
+        if (request.getCustomer() != null) {
+            return customerService.findOrCreateByEmail(request.getCustomer());
+        }
+        throw new IllegalArgumentException("Either customerId or customer details are required.");
     }
 
     private void validateDates(CreateOrderRequest request) {

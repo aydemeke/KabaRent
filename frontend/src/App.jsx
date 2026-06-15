@@ -4,11 +4,16 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigationType } from 're
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import AdminGuard from './components/AdminGuard'
+import RequireCustomer from './auth/RequireCustomer'
 
 // Customer pages
 import BrowsePage from './pages/customer/BrowsePage'
 import NewOrderPage from './pages/customer/NewOrderPage'
 import OrderStatusPage from './pages/customer/OrderStatusPage'
+import LoginPage from './pages/customer/LoginPage'
+import RegisterPage from './pages/customer/RegisterPage'
+import MyOrdersPage from './pages/customer/MyOrdersPage'
+import MyOrderDetailPage from './pages/customer/MyOrderDetailPage'
 
 // Content / info pages using Lazy Loading
 const AboutPage = React.lazy(() => import('./pages/content/AboutPage'))
@@ -63,6 +68,12 @@ function AppLayout() {
             <Route path="/" element={<BrowsePage />} />
             <Route path="/order/new" element={<NewOrderPage />} />
             <Route path="/order/:id" element={<OrderStatusPage />} />
+
+            {/* Customer accounts */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/customer/orders" element={<RequireCustomer><MyOrdersPage /></RequireCustomer>} />
+            <Route path="/customer/orders/:id" element={<RequireCustomer><MyOrderDetailPage /></RequireCustomer>} />
 
             {/* Content / info pages */}
             <Route path="/about" element={<AboutPage />} />
