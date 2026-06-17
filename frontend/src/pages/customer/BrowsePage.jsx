@@ -1,8 +1,10 @@
 import { Fragment, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAll, getAvailable } from '../../api/kabas'
+import { useAuth } from '../../auth/useAuth'
 import Spinner from '../../components/Spinner'
 import KabaDetailModal from '../../components/KabaDetailModal'
+import CheckoutAuthGate from '../../components/CheckoutAuthGate'
 
 const CATEGORY_HE = { Wedding: 'חתונה', Anniversary: 'יום נישואין', Other: 'אחר' }
 const CATEGORY_PILLS = ['הכל', 'חתונה', 'יום נישואין', 'אחר']
@@ -59,12 +61,14 @@ function ColorSwatch({ name }) {
 
 export default function BrowsePage() {
   const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
   const [kabas, setKabas] = useState([])
   const [loading, setLoading] = useState(true)
   const [eventDate, setEventDate] = useState(new Date().toISOString().split('T')[0])
   const [returnDate, setReturnDate] = useState('')
   const [filtered, setFiltered] = useState(false)
   const [selectedKaba, setSelectedKaba] = useState(null)
+  const [gateOrderPath, setGateOrderPath] = useState(null)
   const [activeCategory, setActiveCategory] = useState('הכל')
   const [sortBy, setSortBy] = useState('price-asc')
 
@@ -90,11 +94,24 @@ export default function BrowsePage() {
     getAll().then(setKabas).finally(() => setLoading(false))
   }
 
-  function bookNow(kabaId) {
+  // Build the order-form path carrying the in-progress selection (kaba + chosen dates).
+  // The whole intent lives in the URL, so it survives a login/register round-trip — and
+  // even a full page reload — without any separate router-state or sessionStorage backup.
+  function orderPathFor(kabaId) {
     const params = new URLSearchParams({ kabaId })
     if (eventDate) params.set('eventDate', eventDate)
     if (returnDate) params.set('returnDate', returnDate)
-    navigate(`/order/new?${params}`)
+    return `/order/new?${params}`
+  }
+
+  function bookNow(kabaId) {
+    const path = orderPathFor(kabaId)
+    // Logged-in customers glide straight to the prefilled form; guests hit the auth gate.
+    if (isLoggedIn) {
+      navigate(path)
+    } else {
+      setGateOrderPath(path)
+    }
   }
 
   const catFilter = CATEGORY_FILTER[activeCategory]
@@ -115,6 +132,15 @@ export default function BrowsePage() {
           kaba={selectedKaba}
           onClose={() => setSelectedKaba(null)}
           onBook={() => { setSelectedKaba(null); bookNow(selectedKaba.id) }}
+        />
+      )}
+
+      {gateOrderPath && (
+        <CheckoutAuthGate
+          onClose={() => setGateOrderPath(null)}
+          onLogin={() => navigate(`/login?redirect=${encodeURIComponent(gateOrderPath)}`)}
+          onRegister={() => navigate(`/register?redirect=${encodeURIComponent(gateOrderPath)}`)}
+          onGuest={() => navigate(gateOrderPath)}
         />
       )}
 

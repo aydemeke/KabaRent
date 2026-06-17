@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../auth/useAuth'
+import CheckoutAuthGate from './CheckoutAuthGate'
 
 export default function Navbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const isAdmin = pathname.startsWith('/admin')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [gateOpen, setGateOpen] = useState(false)
   const { isLoggedIn, isAdmin: isAdminUser, logout } = useAuth()
 
   function active(path) {
@@ -22,6 +24,21 @@ export default function Navbar() {
   }
 
   const linkBtn = 'text-on-surface-variant hover:text-on-surface transition-colors bg-transparent border-none cursor-pointer font-inter font-medium text-sm p-0'
+
+  // "New order" entry point. Logged-in customers go straight to the prefilled form;
+  // guests hit the same checkout gate as the card flow, with redirect target /order/new
+  // (no kabaId — this is a generic "start an order" entry, so no selection to preserve).
+  const newOrderLink = isLoggedIn ? (
+    <Link to="/order/new" className={active('/order/new')} onClick={() => setMenuOpen(false)}>הזמנה חדשה</Link>
+  ) : (
+    <button
+      type="button"
+      onClick={() => { setMenuOpen(false); setGateOpen(true) }}
+      className={`${active('/order/new')} bg-transparent border-none cursor-pointer font-inter font-medium text-sm p-0`}
+    >
+      הזמנה חדשה
+    </button>
+  )
 
   const navLinks = isAdmin ? (
     <>
@@ -40,7 +57,7 @@ export default function Navbar() {
     </>
   ) : (
     <>
-      <Link to="/order/new" className={active('/order/new')}>הזמנה חדשה</Link>
+      {newOrderLink}
       {isLoggedIn && !isAdminUser ? (
         <>
           <Link to="/customer/orders" className={active('/customer/orders')}>ההזמנות שלי</Link>
@@ -109,6 +126,15 @@ export default function Navbar() {
         >
           {navLinks}
         </div>
+      )}
+
+      {gateOpen && (
+        <CheckoutAuthGate
+          onClose={() => setGateOpen(false)}
+          onLogin={() => navigate('/login?redirect=%2Forder%2Fnew')}
+          onRegister={() => navigate('/register?redirect=%2Forder%2Fnew')}
+          onGuest={() => navigate('/order/new')}
+        />
       )}
     </nav>
   )
