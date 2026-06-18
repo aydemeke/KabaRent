@@ -49,9 +49,9 @@ export default function NewOrderPage() {
   const [quantity, setQuantity] = useState(1)
 
   // Prefill identity for logged-in customers so the order links to their account
-  // (the order is find-or-created by email; a matching email attaches it to their record).
+  // (the order is find-or-created by phone; a matching phone attaches it to their record).
   const [fullName, setFullName] = useState(user?.fullName || '')
-  const [phone, setPhone] = useState('')
+  const [phone, setPhone] = useState(user?.phone || '')
   const [email, setEmail] = useState(user?.email || '')
   const [notes, setNotes] = useState('')
 
@@ -90,7 +90,7 @@ export default function NewOrderPage() {
     }
     setSubmitting(true)
     try {
-      // Guest checkout: the customer is find-or-created by email on the public order endpoint.
+      // Guest checkout: the customer is find-or-created by phone on the public order endpoint.
       const order = await createOrder({
         customer: { fullName, phone, email },
         eventDate, returnDate, notes,
@@ -100,7 +100,9 @@ export default function NewOrderPage() {
       // (GET /api/orders/{id} is admin-only; sequential ids must never be publicly readable).
       navigate(`/order/${order.id}`, { state: { order } })
     } catch (err) {
-      setError(err.response?.data?.error || 'אירעה שגיאה. אנא נסה שוב.')
+      setError(err.response?.status === 400
+        ? 'מספר טלפון לא תקין'
+        : (err.response?.data?.error || 'אירעה שגיאה. אנא נסה שוב.'))
     } finally {
       setSubmitting(false)
     }
@@ -226,17 +228,20 @@ export default function NewOrderPage() {
                 <label htmlFor="order-phone" className="ds-label block mb-1.5">טלפון</label>
                 <input
                   id="order-phone"
-                  type="tel" value={phone} required
+                  type="tel" value={phone} required autoComplete="tel"
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="050-0000000"
+                  placeholder="050-1234567"
                   className="ds-input"
                 />
+                <p className="font-inter text-xs text-on-surface-variant mt-1.5">
+                  מספר ישראלי רגיל — אין צורך בקידומת ‎+972.
+                </p>
               </div>
               <div>
-                <label htmlFor="order-email" className="ds-label block mb-1.5">אימייל</label>
+                <label htmlFor="order-email" className="ds-label block mb-1.5">אימייל (אופציונלי)</label>
                 <input
                   id="order-email"
-                  type="email" value={email} required
+                  type="email" value={email} autoComplete="email"
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="ds-input"

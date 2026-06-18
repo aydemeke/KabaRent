@@ -50,7 +50,7 @@ export function isAdmin() {
   return snapshot.user?.role === 'ADMIN'
 }
 
-/** Stores the auth response ({ token, customerId, fullName, email, role }). */
+/** Stores the auth response ({ token, customerId, fullName, phone, email, role }). */
 export function setAuth({ token, ...user }) {
   localStorage.setItem(TOKEN_KEY, token)
   localStorage.setItem(USER_KEY, JSON.stringify(user))

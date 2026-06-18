@@ -47,7 +47,7 @@ export default function OrderStatusPage() {
     if (order) return // already have it (from router state)
     if (!isLoggedIn) {
       // Cold visit (e.g. refresh) with no session: order reads are not public, so send the
-      // visitor to register/login — which links their orders by email — and return here after.
+      // visitor to register/login — which links their orders by phone — and return here after.
       navigate(`/register?redirect=${encodeURIComponent(location.pathname)}`, { replace: true })
       return
     }
@@ -138,7 +138,7 @@ export default function OrderStatusPage() {
         <div className="px-6 py-5">
           <p className="ds-label mb-2">פרטי לקוח</p>
           <p className="font-inter font-medium text-on-surface text-sm">{order.customer.fullName}</p>
-          <p className="font-inter text-on-surface-variant text-sm">{order.customer.phone} · {order.customer.email}</p>
+          <p className="font-inter text-on-surface-variant text-sm">{order.customer.phone}{order.customer.email ? ` · ${order.customer.email}` : ''}</p>
         </div>
 
         {order.notes && (

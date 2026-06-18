@@ -9,7 +9,7 @@ export default function LoginPage() {
   const { login } = useAuth()
   const redirect = searchParams.get('redirect') || '/customer/orders'
 
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -19,12 +19,12 @@ export default function LoginPage() {
     setError('')
     setSubmitting(true)
     try {
-      const auth = await loginRequest(email, password)
+      const auth = await loginRequest(identifier, password)
       login(auth)
       navigate(redirect, { replace: true })
     } catch (err) {
       setError(err.response?.status === 401
-        ? 'אימייל או סיסמה שגויים.'
+        ? 'מספר טלפון או סיסמה שגויים.'
         : (err.response?.data?.error || 'אירעה שגיאה. אנא נסה שוב.'))
     } finally {
       setSubmitting(false)
@@ -42,12 +42,12 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 space-y-4" style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)' }}>
         <div>
-          <label htmlFor="login-email" className="ds-label block mb-1.5">אימייל</label>
+          <label htmlFor="login-phone" className="ds-label block mb-1.5">טלפון</label>
           <input
-            id="login-email"
-            type="email" value={email} required autoComplete="email"
-            onChange={e => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            id="login-phone"
+            type="tel" value={identifier} required autoComplete="tel"
+            onChange={e => setIdentifier(e.target.value)}
+            placeholder="050-1234567"
             className="ds-input"
           />
         </div>

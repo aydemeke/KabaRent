@@ -25,8 +25,11 @@ export default function RegisterPage() {
       login(auth)
       navigate(redirect, { replace: true })
     } catch (err) {
-      if (err.response?.status === 409) {
-        setError('כבר קיים חשבון עם אימייל זה. נסו להתחבר.')
+      const status = err.response?.status
+      if (status === 409) {
+        setError('מספר הטלפון כבר רשום. אפשר להתחבר במקום.')
+      } else if (status === 400) {
+        setError('מספר טלפון לא תקין')
       } else {
         setError(err.response?.data?.error || 'אירעה שגיאה. אנא נסה שוב.')
       }
@@ -61,15 +64,18 @@ export default function RegisterPage() {
             id="register-phone"
             type="tel" value={phone} required autoComplete="tel"
             onChange={e => setPhone(e.target.value)}
-            placeholder="050-0000000"
+            placeholder="050-1234567"
             className="ds-input"
           />
+          <p className="font-inter text-xs text-on-surface-variant mt-1.5">
+            מספר ישראלי רגיל — אין צורך בקידומת ‎+972.
+          </p>
         </div>
         <div>
-          <label htmlFor="register-email" className="ds-label block mb-1.5">אימייל</label>
+          <label htmlFor="register-email" className="ds-label block mb-1.5">אימייל (אופציונלי)</label>
           <input
             id="register-email"
-            type="email" value={email} required autoComplete="email"
+            type="email" value={email} autoComplete="email"
             onChange={e => setEmail(e.target.value)}
             placeholder="you@example.com"
             className="ds-input"

@@ -128,7 +128,7 @@ export default function MyOrderDetailPage() {
         <div className="px-6 py-5">
           <p className="ds-label mb-2">פרטי לקוח</p>
           <p className="font-inter font-medium text-on-surface text-sm">{order.customer.fullName}</p>
-          <p className="font-inter text-on-surface-variant text-sm">{order.customer.phone} · {order.customer.email}</p>
+          <p className="font-inter text-on-surface-variant text-sm">{order.customer.phone}{order.customer.email ? ` · ${order.customer.email}` : ''}</p>
         </div>
 
         {order.notes && (
