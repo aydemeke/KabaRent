@@ -2,15 +2,8 @@ import axios from 'axios'
 import { getToken, clearAuth } from '../auth/authStorage'
 import { markSlow, clearSlow } from './coldStart'
 
-//Locally
-//const api = axios.create({
-//  baseURL: 'http://localhost:8080/api',
-//  headers: { 'Content-Type': 'application/json' },
-//})
-
-//Remote server
 const api = axios.create({
-  baseURL: 'https://kabarent.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { 'Content-Type': 'application/json' },
   // Render free tier can take ~60s to wake from a cold start; allow headroom.
   timeout: 70000,
