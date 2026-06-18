@@ -15,6 +15,7 @@ import java.util.List;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final PhoneNumberService phoneNumberService;
 
     public List<CustomerResponse> listAll() {
         return customerRepository.findAll()
@@ -28,21 +29,23 @@ public class CustomerService {
     }
 
     public CustomerResponse create(CustomerRequest request) {
-        return CustomerResponse.from(findOrCreateByEmail(request));
+        return CustomerResponse.from(findOrCreateByPhone(request));
     }
 
     /**
-     * Returns the existing customer with the given email, or creates a new one
-     * if none exists. Prevents the UNIQUE(email) constraint violation that occurs
-     * when a returning customer places another order.
+     * Returns the existing customer with the given (normalized) phone, or creates a new one
+     * if none exists. Phone is the identity key, so the raw phone is normalized to E.164 via
+     * {@link PhoneNumberService} before both the lookup and the insert — preventing the
+     * UNIQUE(phone) violation when a returning customer places another order. Email is optional.
      */
-    public Customer findOrCreateByEmail(CustomerRequest request) {
-        return customerRepository.findByEmail(request.getEmail())
+    public Customer findOrCreateByPhone(CustomerRequest request) {
+        String phone = phoneNumberService.normalizeToE164(request.getPhone());
+        return customerRepository.findByPhone(phone)
                 .orElseGet(() -> customerRepository.save(
                         Customer.builder()
                                 .fullName(request.getFullName())
-                                .phone(request.getPhone())
-                                .email(request.getEmail())
+                                .phone(phone)
+                                .email(blankToNull(request.getEmail()))
                                 .notes(request.getNotes())
                                 .build()
                 ));
@@ -51,10 +54,15 @@ public class CustomerService {
     public CustomerResponse update(Long id, CustomerRequest request) {
         Customer customer = findOrThrow(id);
         customer.setFullName(request.getFullName());
-        customer.setPhone(request.getPhone());
-        customer.setEmail(request.getEmail());
+        customer.setPhone(phoneNumberService.normalizeToE164(request.getPhone()));
+        customer.setEmail(blankToNull(request.getEmail()));
         customer.setNotes(request.getNotes());
         return CustomerResponse.from(customerRepository.save(customer));
+    }
+
+    /** Treat an absent/blank optional email as NULL so it never collides under UNIQUE(email). */
+    private static String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value;
     }
 
     public Customer findOrThrow(Long id) {

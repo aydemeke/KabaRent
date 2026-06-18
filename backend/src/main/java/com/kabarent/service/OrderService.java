@@ -170,15 +170,15 @@ public class OrderService {
 
     /**
      * Resolves the order's customer. Known/admin flows pass {@code customerId}; guest checkout
-     * passes {@code customer} details, which are find-or-created by email (reusing the same row
-     * for returning emails, so the guest's orders later link to their account on registration).
+     * passes {@code customer} details, which are find-or-created by phone (reusing the same row
+     * for returning phones, so the guest's orders later link to their account on registration).
      */
     private Customer resolveCustomer(CreateOrderRequest request) {
         if (request.getCustomerId() != null) {
             return customerService.findOrThrow(request.getCustomerId());
         }
         if (request.getCustomer() != null) {
-            return customerService.findOrCreateByEmail(request.getCustomer());
+            return customerService.findOrCreateByPhone(request.getCustomer());
         }
         throw new IllegalArgumentException("Either customerId or customer details are required.");
     }

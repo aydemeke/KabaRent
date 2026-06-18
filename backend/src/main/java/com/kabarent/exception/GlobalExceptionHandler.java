@@ -53,10 +53,20 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(PhoneAlreadyRegisteredException.class)
+    public ResponseEntity<Map<String, Object>> handlePhoneRegistered(PhoneAlreadyRegisteredException ex) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidPhoneNumberException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidPhone(InvalidPhoneNumberException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex) {
         // Bad credentials / failed login surfacing through the MVC layer.
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -67,7 +77,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
-        return buildResponse(HttpStatus.CONFLICT, "A customer with this email already exists");
+        return buildResponse(HttpStatus.CONFLICT, "A customer with these details already exists");
     }
 
     @ExceptionHandler(Exception.class)

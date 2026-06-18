@@ -1,5 +1,6 @@
 package com.kabarent.dto.request;
 
+import com.kabarent.validation.ValidPhone;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -11,9 +12,10 @@ public class CustomerRequest {
     private String fullName;
 
     @NotBlank(message = "Phone is required")
+    @ValidPhone
     private String phone;
 
-    @NotBlank(message = "Email is required")
+    // Email is optional now that phone is the identity key; validated for format only when present.
     @Email(message = "Email must be valid")
     private String email;
 

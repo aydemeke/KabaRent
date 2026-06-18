@@ -24,10 +24,21 @@ public class Customer {
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
-    @Column(nullable = false, length = 20)
+    /*
+     * Identity-key migration (phone-based auth). The annotations below are the source of truth
+     * for a FRESH database only:
+     *   - phone: now the login/lookup identity, hence unique = true. Stored in canonical E.164
+     *     form (see PhoneNumberService) so writes and lookups always match.
+     *   - email: now OPTIONAL (nullable = true). unique = true is kept, which in Postgres means
+     *     "unique when present" (multiple NULLs are allowed).
+     * On the EXISTING Neon database the phone UNIQUE constraint and the email DROP NOT NULL are
+     * applied MANUALLY in Phase B, AFTER the dry-run dedup. This code must NOT be deployed to
+     * production until that manual migration has run.
+     */
+    @Column(nullable = false, unique = true, length = 20)
     private String phone;
 
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(nullable = true, unique = true, length = 150)
     private String email;
 
     @Column(columnDefinition = "TEXT")
