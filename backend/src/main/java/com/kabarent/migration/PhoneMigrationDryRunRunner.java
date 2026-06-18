@@ -43,14 +43,16 @@ public class PhoneMigrationDryRunRunner implements CommandLineRunner {
 
     private record InvalidRow(Long id, String name, String rawPhone, String reason) {}
 
+    private record ChangeRow(Long id, String name, String rawPhone, String e164) {}
+
     @Override
     @Transactional(readOnly = true)
     public void run(String... args) {
         List<Customer> all = customerRepository.findAll();
 
         int adminSkipped = 0;
-        int wouldChange = 0;
         int unchanged = 0;
+        List<ChangeRow> wouldChange = new ArrayList<>();
         List<InvalidRow> invalid = new ArrayList<>();
         // normalized E.164 -> rows that map to it (insertion-ordered for stable output)
         Map<String, List<Customer>> byNormalized = new LinkedHashMap<>();
@@ -67,7 +69,7 @@ public class PhoneMigrationDryRunRunner implements CommandLineRunner {
                 if (e164.equals(raw)) {
                     unchanged++;
                 } else {
-                    wouldChange++;
+                    wouldChange.add(new ChangeRow(c.getId(), c.getFullName(), raw, e164));
                 }
             } catch (InvalidPhoneNumberException e) {
                 invalid.add(new InvalidRow(c.getId(), c.getFullName(), raw, e.getMessage()));
@@ -84,10 +86,20 @@ public class PhoneMigrationDryRunRunner implements CommandLineRunner {
         sb.append("Total customer rows          : ").append(all.size()).append('\n');
         sb.append("ADMIN rows skipped           : ").append(adminSkipped).append('\n');
         sb.append("Non-admin rows processed     : ").append(all.size() - adminSkipped).append('\n');
-        sb.append("  - phone would CHANGE       : ").append(wouldChange).append('\n');
+        sb.append("  - phone would CHANGE       : ").append(wouldChange.size()).append('\n');
         sb.append("  - phone already canonical  : ").append(unchanged).append('\n');
         sb.append("  - phone INVALID (blockers) : ").append(invalid.size()).append('\n');
         sb.append("Collision groups (blockers)  : ").append(collisions.size()).append('\n');
+
+        sb.append("\n--- WILL CHANGE: raw -> canonical E.164 (literal backfill values) ---\n");
+        if (wouldChange.isEmpty()) {
+            sb.append("(none)\n");
+        } else {
+            for (ChangeRow r : wouldChange) {
+                sb.append(String.format("  id=%d  name=%s  rawPhone=%s  e164=%s%n",
+                        r.id(), r.name(), quote(r.rawPhone()), r.e164()));
+            }
+        }
 
         sb.append("\n--- INVALID / UNPARSEABLE PHONES (must fix before Phase B) ---\n");
         if (invalid.isEmpty()) {
