@@ -178,25 +178,25 @@ class OrderServiceTest {
         assertThat(captor.getValue().getTotalPrice()).isEqualByComparingTo("100"); // 100*1*1
     }
 
-    // O1b — guest checkout: no customerId, customer details find-or-created by email
+    // O1b — guest checkout: no customerId, customer details find-or-created by phone
     @Test
-    void create_guestCheckout_findsOrCreatesCustomerByEmail() {
+    void create_guestCheckout_findsOrCreatesCustomerByPhone() {
         CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
         req.setCustomerId(null);
         CustomerRequest guest = new CustomerRequest();
         guest.setFullName("Sara");
-        guest.setPhone("050");
+        guest.setPhone("050-1234567");
         guest.setEmail("s@x.com");
         req.setCustomer(guest);
 
-        when(customerService.findOrCreateByEmail(guest)).thenReturn(customer());
+        when(customerService.findOrCreateByPhone(guest)).thenReturn(customer());
         when(kabaService.findOrThrow(1L)).thenReturn(kaba(1L, "Black Gold", "100"));
         when(availabilityService.isAvailable(1L, req.getEventDate(), req.getReturnDate(), 1)).thenReturn(true);
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         orderService.create(req);
 
-        verify(customerService).findOrCreateByEmail(guest);
+        verify(customerService).findOrCreateByPhone(guest);
         verify(orderRepository).save(any(Order.class));
     }
 

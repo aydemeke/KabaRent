@@ -35,7 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         PaymentController.class, MyOrderController.class, AuthController.class,
         HealthController.class
 })
-@Import({SecurityConfig.class, CorsConfig.class, JwtAuthenticationFilter.class, JwtService.class})
+@Import({SecurityConfig.class, CorsConfig.class, JwtAuthenticationFilter.class, JwtService.class,
+        com.kabarent.service.PhoneNumberService.class})
 class SecurityAuthorizationTest {
 
     @Autowired private MockMvc mockMvc;
