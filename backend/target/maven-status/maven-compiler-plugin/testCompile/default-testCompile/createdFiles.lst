@@ -1,3 +1,4 @@
+com\kabarent\service\PhoneNumberServiceTest.class
 com\kabarent\security\SecurityAuthorizationTest.class
 com\kabarent\repository\OrderItemRepositoryIT.class
 com\kabarent\service\AuthServiceTest.class
@@ -6,3 +7,4 @@ com\kabarent\service\AvailabilityServiceTest.class
 com\kabarent\service\OrderServiceCustomerTest.class
 com\kabarent\service\PaymentServiceTest.class
 com\kabarent\security\CustomerUserDetailsServiceTest.class
+com\kabarent\service\CustomerServiceTest.class

@@ -3,6 +3,7 @@ com\kabarent\model\Payment.class
 com\kabarent\config\SecurityConfig.class
 com\kabarent\dto\response\OrderItemResponse$OrderItemResponseBuilder.class
 com\kabarent\model\Payment$PaymentBuilder.class
+com\kabarent\validation\ValidPhone.class
 com\kabarent\controller\KabaController.class
 com\kabarent\security\JwtAuthenticationFilter.class
 com\kabarent\config\DataInitializer.class
@@ -12,12 +13,15 @@ com\kabarent\dto\request\LoginRequest.class
 com\kabarent\model\enums\OrderStatus.class
 com\kabarent\security\CustomerUserDetailsService.class
 com\kabarent\service\CustomerService.class
+com\kabarent\validation\PhoneValidator.class
 com\kabarent\model\Order$OrderBuilder.class
 com\kabarent\model\Order.class
+com\kabarent\exception\InvalidPhoneNumberException.class
 com\kabarent\repository\CustomerRepository.class
 com\kabarent\repository\KabaRepository.class
 com\kabarent\config\CorsConfig.class
 com\kabarent\model\enums\Role.class
+com\kabarent\service\PhoneNumberService.class
 com\kabarent\dto\response\AvailabilityResponse$AvailabilityResponseBuilder.class
 com\kabarent\controller\OrderController.class
 com\kabarent\service\KabaService.class
@@ -41,6 +45,7 @@ com\kabarent\controller\MyOrderController.class
 com\kabarent\exception\AvailabilityException.class
 com\kabarent\dto\response\PaymentResponse$PaymentResponseBuilder.class
 com\kabarent\exception\ResourceNotFoundException.class
+com\kabarent\migration\PhoneMigrationDryRunRunner$ChangeRow.class
 com\kabarent\model\enums\PaymentMethod.class
 com\kabarent\dto\response\KabaResponse$KabaResponseBuilder.class
 com\kabarent\dto\response\AuthResponse$AuthResponseBuilder.class
@@ -53,6 +58,7 @@ com\kabarent\dto\response\AuthResponse.class
 com\kabarent\model\enums\PaymentStatus.class
 com\kabarent\model\OrderItem.class
 com\kabarent\service\PaymentService.class
+com\kabarent\migration\PhoneMigrationDryRunRunner.class
 com\kabarent\KabaRentApplication.class
 com\kabarent\model\Kaba.class
 com\kabarent\repository\PaymentRepository.class
@@ -61,7 +67,9 @@ com\kabarent\service\OrderService.class
 com\kabarent\dto\response\PaymentBalanceResponse.class
 com\kabarent\dto\request\CustomerRequest.class
 com\kabarent\dto\request\UpdateOrderStatusRequest.class
+com\kabarent\exception\PhoneAlreadyRegisteredException.class
 com\kabarent\exception\EmailAlreadyRegisteredException.class
+com\kabarent\migration\PhoneMigrationDryRunRunner$InvalidRow.class
 com\kabarent\dto\response\CustomerResponse$CustomerResponseBuilder.class
 com\kabarent\dto\response\PaymentResponse.class
 com\kabarent\controller\PaymentController.class

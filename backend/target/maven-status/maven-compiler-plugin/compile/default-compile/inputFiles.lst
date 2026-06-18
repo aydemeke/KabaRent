@@ -1,5 +1,6 @@
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\controller\OrderController.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\security\JwtService.java
+C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\exception\InvalidPhoneNumberException.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\model\Kaba.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\controller\AuthController.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\security\CustomerUserDetailsService.java
@@ -15,7 +16,10 @@ C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kab
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\request\OrderItemRequest.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\request\RecordPaymentRequest.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\request\RegisterRequest.java
+C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\migration\PhoneMigrationDryRunRunner.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\model\OrderItem.java
+C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\exception\PhoneAlreadyRegisteredException.java
+C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\validation\ValidPhone.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\security\CustomerPrincipal.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\response\PaymentBalanceResponse.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\response\CustomerResponse.java
@@ -28,6 +32,7 @@ C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kab
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\model\enums\PaymentMethod.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\KabaRentApplication.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\response\OrderResponse.java
+C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\validation\PhoneValidator.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\response\AuthResponse.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\response\OrderItemResponse.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\model\Order.java
@@ -46,6 +51,7 @@ C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kab
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\exception\AvailabilityException.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\exception\GlobalExceptionHandler.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\controller\MyOrderController.java
+C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\service\PhoneNumberService.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\model\enums\PaymentStatus.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\dto\request\CreateOrderRequest.java
 C:\Users\mayab\Desktop\Ayanaw 2025\claude\KabaRent\backend\src\main\java\com\kabarent\controller\PaymentController.java

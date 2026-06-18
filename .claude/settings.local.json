@@ -57,7 +57,17 @@
       "Bash(MSYS_NO_PATHCONV=1 node \"../.claude/skills/ui-check/ui-check.mjs\" --route=/login --widths=375,768,1280)",
       "Bash(MSYS_NO_PATHCONV=1 node \"../.claude/skills/ui-check/ui-check.mjs\" --route=/register --widths=375,768,1280)",
       "Bash(node _uicheck_tmp.mjs)",
-      "Bash(mvn -o test -Dtest='SecurityAuthorizationTest')"
+      "Bash(mvn -o test -Dtest='SecurityAuthorizationTest')",
+      "Bash(mvn -o clean package -DskipTests)",
+      "Bash(gh auth *)",
+      "Bash(git config *)",
+      "Read(//c/Program Files/Git/mingw64/bin//**)",
+      "Bash(env)",
+      "Bash(git -c credential.helper= -c 'credential.helper=!f\\(\\) { echo username=x-access-token; echo \"password=$GITHUB_TOKEN\"; }; f' push origin HEAD:main)",
+      "PowerShell($ok=$false; 1..40 | ForEach-Object { if \\(-not $ok\\) { try { Invoke-WebRequest http://localhost:5173 -UseBasicParsing -TimeoutSec 2 | Out-Null; $ok=$true } catch { Start-Sleep -Seconds 1 } } }; if \\($ok\\) { \"ready\" } else { \"timeout\" })",
+      "PowerShell(cd \"C:\\\\Users\\\\mayab\\\\Desktop\\\\Ayanaw 2025\\\\claude\\\\KabaRent\\\\frontend\"; Start-Process npm -ArgumentList 'run','dev' -WindowStyle Hidden; $ok=$false; 1..40 | ForEach-Object { if \\(-not $ok\\) { try { Invoke-WebRequest http://localhost:5173 -UseBasicParsing -TimeoutSec 2 | Out-Null; $ok=$true } catch { Start-Sleep -Seconds 1 } } }; if \\($ok\\) { \"ready\" } else { \"timeout\" })",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(git *)"
     ]
   }
 }
