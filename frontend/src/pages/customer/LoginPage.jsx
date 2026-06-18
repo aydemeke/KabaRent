@@ -21,7 +21,10 @@ export default function LoginPage() {
     try {
       const auth = await loginRequest(identifier, password)
       login(auth)
-      navigate(redirect, { replace: true })
+      // Admins belong in the admin area (all-orders, GET /api/orders) — never on the
+      // customer self-service pages (/customer/orders → GET /api/my/orders → 403 for admin).
+      // Customers keep the existing redirect (default /customer/orders).
+      navigate(auth.role === 'ADMIN' ? '/admin' : redirect, { replace: true })
     } catch (err) {
       setError(err.response?.status === 401
         ? 'מספר טלפון או סיסמה שגויים.'
