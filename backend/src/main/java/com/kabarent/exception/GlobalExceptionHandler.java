@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,8 +77,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        // Always log the specific cause; only claim "already exists" for true unique-constraint
+        // violations (Postgres SQLState 23505). Other violations (e.g. NOT NULL, 23502) are not
+        // duplicates, so report a generic 409 rather than a misleading "already exists".
         log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
-        return buildResponse(HttpStatus.CONFLICT, "A customer with these details already exists");
+        if (isUniqueViolation(ex)) {
+            return buildResponse(HttpStatus.CONFLICT, "A customer with these details already exists");
+        }
+        return buildResponse(HttpStatus.CONFLICT, "The request could not be completed due to a data conflict");
+    }
+
+    /** True only for a SQL unique-constraint violation (SQLState 23505). */
+    private boolean isUniqueViolation(DataIntegrityViolationException ex) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof SQLException sqlEx && "23505".equals(sqlEx.getSQLState())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @ExceptionHandler(Exception.class)

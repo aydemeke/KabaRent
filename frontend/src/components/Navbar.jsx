@@ -58,9 +58,10 @@ export default function Navbar() {
   ) : (
     <>
       {newOrderLink}
-      {isLoggedIn && !isAdminUser ? (
+      {isLoggedIn ? (
         <>
-          <Link to="/customer/orders" className={active('/customer/orders')}>ההזמנות שלי</Link>
+          {/* Customer-only link; an admin viewing a customer page has no "my orders". */}
+          {!isAdminUser && <Link to="/customer/orders" className={active('/customer/orders')}>ההזמנות שלי</Link>}
           <button type="button" onClick={() => handleLogout('/')} className={linkBtn}>התנתקות</button>
         </>
       ) : (
