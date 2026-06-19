@@ -10,11 +10,12 @@ A full-stack rental management system for traditional Ethiopian Kaba garments, b
 
 | Layer | Technology |
 |---|---|
-| **Backend** | Java 21, Spring Boot 3, Spring Data JPA / Hibernate, Spring Security 6 (stateless JWT via JJWT), Lombok |
-| **Database** | PostgreSQL |
+| **Backend** | Java 21, Spring Boot 3, Spring Data JPA / Hibernate, Spring Security 6 (stateless JWT via JJWT), libphonenumber, Lombok |
+| **Database** | PostgreSQL (**Neon**-hosted in production) |
 | **Frontend** | React 19, Vite, Tailwind CSS, React Router v7, Axios |
 | **Testing** | JUnit 5, Mockito, AssertJ, Spring Security Test, Testcontainers (PostgreSQL) |
 | **Build** | Maven (backend), npm (frontend) |
+| **Deployment** | Vercel (frontend) · Render (backend) · Neon (database) |
 
 ---
 
@@ -28,8 +29,8 @@ KabaRent/
 │       ├── main/java/com/kabarent/
 │       │   ├── KabaRentApplication.java  # Application entry point
 │       │   ├── config/
-│       │   │   ├── CorsConfig.java       # CORS rules (allows localhost:5173)
-│       │   │   └── DataInitializer.java  # Empty placeholder (no seed data)
+│       │   │   ├── CorsConfig.java       # CORS rules (allows localhost:5173 + the Vercel origin)
+│       │   │   └── DataInitializer.java  # Seeds the admin user from env (ADMIN_EMAIL/ADMIN_PASSWORD)
 │       │   ├── controller/               # REST controllers (one per resource)
 │       │   │   ├── KabaController.java
 │       │   │   ├── CustomerController.java
@@ -56,7 +57,7 @@ KabaRent/
 │       │   │   └── PaymentRepository.java
 │       │   └── service/                  # Business logic layer
 │       │       ├── AvailabilityService.java  # Quantity-based overlap detection
-│       │       ├── CustomerService.java      # find-or-create by email
+│       │       ├── CustomerService.java      # find-or-create by phone (E.164)
 │       │       ├── KabaService.java
 │       │       ├── OrderService.java         # Lifecycle + confirm-time lock/re-validation
 │       │       └── PaymentService.java       # Balance validation
@@ -75,10 +76,11 @@ KabaRent/
 │   └── src/
 │       ├── App.jsx                   # Router setup, layout shell, scroll-to-top
 │       ├── api/                      # Axios call wrappers (one file per resource)
-│       │   ├── axiosInstance.js      # Base URL (http://localhost:8080/api)
-│       │   ├── kabas.js  customers.js  orders.js  payments.js
+│       │   ├── axiosInstance.js      # Base URL from VITE_API_URL; JWT, 401-redirect, cold-start retry
+│       │   ├── coldStart.js          # "Waking the server" hint for Render cold starts
+│       │   ├── auth.js  kabas.js  customers.js  orders.js  payments.js
 │       ├── components/               # Shared UI components
-│       │   ├── AdminGuard.jsx        # Password gate for admin routes (see Known Limitations)
+│       │   ├── AdminGuard.jsx        # Real ROLE_ADMIN JWT guard for admin routes
 │       │   ├── ContentLayout.jsx     # Overlay layout for content/info pages
 │       │   ├── DateInput.jsx  Footer.jsx  KabaDetailModal.jsx  KabaPlaceholder.jsx
 │       │   ├── Modal.jsx  Navbar.jsx  Spinner.jsx  StatusBadge.jsx
@@ -109,30 +111,35 @@ KabaRent/
 - Java 21+
 - Node.js 18+
 - Maven 3.8+
-- A running **PostgreSQL** instance with a database named `kabarent`
+- A reachable **PostgreSQL** database (any Postgres for local dev; production uses **Neon**)
 - **Docker** (only required to run the backend test suite — see [Running Tests](#running-tests))
 
 ### Database setup
 
-The backend expects PostgreSQL on `localhost:5432`. Defaults (in `backend/src/main/resources/application.properties`):
+The datasource is configured entirely through environment variables (in
+`backend/src/main/resources/application.properties`); there are **no committed DB credentials**:
 
-```
-URL:      jdbc:postgresql://localhost:5432/kabarent
-Username: myuser
-Password: mypassword
-```
+| Variable | Purpose |
+|---|---|
+| `DB_URL` | JDBC URL, e.g. `jdbc:postgresql://localhost:5432/kabarent` locally, or the **Neon** connection string in production. |
+| `DB_USER` | Database username. |
+| `DB_PASSWORD` | Database password. |
 
-Quick start with Docker:
+For local development you can point these at any Postgres — e.g. a throwaway container:
 
 ```bash
 docker run --name kabarent-db -e POSTGRES_DB=kabarent \
   -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword \
   -p 5432:5432 -d postgres:16-alpine
+# then: DB_URL=jdbc:postgresql://localhost:5432/kabarent DB_USER=myuser DB_PASSWORD=mypassword
 ```
 
-Hibernate (`ddl-auto=update`) creates the schema automatically on first startup (including the new
-`password_hash` and `role` columns on `customers`), and **data persists** across restarts. There is no
-seed data — add inventory and customers through the admin dashboard.
+Hibernate (`ddl-auto=update`) creates the schema automatically on first startup (including the
+`password_hash`, `role`, and `phone` columns on `customers`), and **data persists** across restarts.
+There is no inventory seed data — add inventory and customers through the admin dashboard.
+
+> **Note:** Hibernate `ddl-auto` cannot drop a `NOT NULL` or backfill data, so the **email→phone
+> migration** was applied by hand — see [Migrations](#migrations).
 
 ### Auth configuration (environment variables)
 
@@ -142,14 +149,19 @@ fallbacks exist in `application.properties`, but production must override them):
 | Variable | Purpose |
 |---|---|
 | `JWT_SECRET` | HMAC signing key for JWTs (≥ 32 bytes). |
-| `ADMIN_EMAIL` | Email of the admin account to seed (default `admin@kabarent.local`). |
-| `ADMIN_PASSWORD` | Admin password. **Blank by default → admin seeding is skipped.** Set it to create/seed the admin on startup. No plaintext admin password is committed. |
+| `ADMIN_EMAIL` | Email of the admin account to seed (default `admin@kabarent.local`). The admin logs in by **email**. |
+| `ADMIN_PASSWORD` | Admin password (local-dev default `12345678`, so the admin **is** seeded by default locally). Admin seeding is skipped only if this is blank. Override in production; no production password is committed. |
+
+The **frontend** reads its API base URL from `VITE_API_URL` — `frontend/.env.local` for dev
+(`http://localhost:8080/api`, untracked) and the tracked `frontend/.env.production` for prod
+(`https://kabarent.onrender.com/api`).
 
 ### Run the Backend
 
 ```bash
 cd backend
-ADMIN_PASSWORD=change-me mvn spring-boot:run     # seeds the admin user on first startup
+DB_URL=jdbc:postgresql://localhost:5432/kabarent DB_USER=myuser DB_PASSWORD=mypassword \
+  ADMIN_PASSWORD=change-me mvn spring-boot:run     # seeds the admin user on first startup
 ```
 
 - API runs on **http://localhost:8080**
@@ -187,8 +199,8 @@ Authenticate via `/api/auth/**` and send the returned token as `Authorization: B
 
 | Method | Path | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Public | Register an account; returns a JWT. Upgrades an existing guest (same email) in place, linking their past orders. 409 if the email already has an account. |
-| `POST` | `/api/auth/login` | Public | Authenticate; returns `{ token, customerId, fullName, email, role }`. |
+| `POST` | `/api/auth/register` | Public | Register an account (phone + password); returns a JWT. Upgrades an existing guest (same phone) in place, linking their past orders. 409 if the phone already has an account. |
+| `POST` | `/api/auth/login` | Public | Authenticate with `{ identifier, password }`; returns `{ token, customerId, fullName, email, role }`. `identifier` = **phone** (customer) or **email** (admin); the server sniffs `@` to decide. |
 
 ### My Orders (customer self-service)
 
@@ -219,14 +231,14 @@ The `customerId` is always derived from the JWT — never from the request.
 |---|---|---|---|
 | `GET` | `/api/customers` | Admin | List all customers |
 | `GET` | `/api/customers/{id}` | Admin | Get a single customer |
-| `POST` | `/api/customers` | Admin | Create or find a customer by email |
+| `POST` | `/api/customers` | Admin | Create or find a customer by phone |
 | `PUT` | `/api/customers/{id}` | Admin | Update a customer |
 
 ### Orders
 
 | Method | Path | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/orders` | Public | Place an order. Guest checkout supplies `customer: { fullName, phone, email }` (find-or-created by email); admin/known flows may pass `customerId`. |
+| `POST` | `/api/orders` | Public | Place an order. Guest checkout supplies `customer: { fullName, phone, email }` (find-or-created **by phone**; email optional); admin/known flows may pass `customerId`. |
 | `GET` | `/api/orders?status=` | Admin | List all orders (optional status filter) |
 | `GET` | `/api/orders/{id}` | Admin | Get order details (with items) — **not public** (sequential ids); customers use `/api/my/orders/{id}` |
 | `GET` | `/api/orders/customer/{customerId}` | Admin | List a customer's orders |
@@ -251,7 +263,7 @@ The `customerId` is always derived from the JWT — never from the request.
 - **Quantity-based availability** — multiple units per Kaba; bookings are tracked per overlapping date range
 - **Order lifecycle** — status transitions managed from the admin dashboard, with a confirm-time row lock to prevent overbooking
 - **Split payments** — an order can receive multiple partial payments; the total cannot exceed the order price
-- **Customer accounts** — register/login (Hebrew RTL); "My Orders" shows a customer's own orders, balances, and lets them self-cancel pending orders. Guest checkout still works and links to the account on registration (same email)
+- **Customer accounts** — phone-based register/login (Hebrew RTL); "My Orders" shows a customer's own orders, balances, and lets them self-cancel pending orders. Guest checkout still works and links to the account on registration (same phone)
 - **Real admin authentication** — Spring Security + JWT; the admin area requires a `ROLE_ADMIN` login
 - **Admin dashboard** — manages inventory, orders, customers, and payments
 - **Hebrew (RTL) customer portal** — including footer-linked info pages (about, FAQ, contact, terms, returns, privacy)
@@ -269,7 +281,8 @@ The `customerId` is always derived from the JWT — never from the request.
   - `CONFIRMED → ACTIVE` or `CANCELLED`
   - `ACTIVE → COMPLETED`
   - `COMPLETED` and `CANCELLED` are terminal (an `ACTIVE` order cannot be cancelled)
-- Customers are matched by email — a returning customer reuses their existing record; registering with a guest's email upgrades that same record to an account (linking past orders)
+- Identity is **phone-based**: customers log in with phone + password (phone stored as canonical E.164 via libphonenumber, region IL; NOT NULL + UNIQUE), email is optional. Admin logs in with email + password. A single `/api/auth/login` sniffs the identifier (`@` → email/admin, else phone/customer).
+- Customers are matched by phone — a returning customer reuses their existing record; registering with a guest's phone upgrades that same record to an account (linking past orders)
 - API access is fail-closed across three tiers (public / `ROLE_CUSTOMER` / `ROLE_ADMIN`); `customerId` is always derived from the JWT, and customers can only see/cancel their own orders
 - Customer self-cancellation is limited to `PENDING` orders; cancelling a `CONFIRMED` order must go through admin
 
@@ -277,11 +290,10 @@ The `customerId` is always derived from the JWT — never from the request.
 
 ## Known Limitations
 
-- **No password reset.** A registered user who forgets their password is locked out — there is no reset/forgot-password flow, and re-registering the same email returns 409. (Backlog.)
+- **No password reset.** A registered user who forgets their password is locked out — there is no reset/forgot-password flow, and re-registering the same phone returns 409. (Backlog.)
 - **No login rate limiting.** `POST /api/auth/login` is not throttled, so it is exposed to credential brute-force/stuffing. (Backlog.)
-- **Hardcoded database credentials** are committed in `application.properties` (the JWT secret and admin password are externalized to env, but DB creds are not yet).
-- **No schema migrations** (no Flyway/Liquibase); schema is driven by Hibernate `ddl-auto=update`.
-- **No database indexes** beyond the unique constraint on `customers.email`.
+- **No schema migrations** (no Flyway/Liquibase); schema is driven by Hibernate `ddl-auto=update`, with one-off DDL applied manually for changes it can't make (see [Migrations](#migrations)).
+- **No database indexes** beyond the unique constraints on `customers.phone` (and `customers.email` when present).
 - Kaba images are referenced by URL/static path; there is no server-side image upload.
 
 ---
@@ -292,7 +304,7 @@ The `customerId` is always derived from the JWT — never from the request.
 - [x] Customer accounts + self-service order viewing/cancellation (`/api/my/**`)
 - [ ] Add a password-reset / forgot-password flow
 - [ ] Rate-limit `POST /api/auth/login`
-- [ ] Move DB credentials to environment variables / secrets
+- [x] Move DB credentials to environment variables / secrets
 - [ ] Introduce schema migrations (Flyway or Liquibase)
 - [ ] Add indexes for date-overlap availability queries
 - [ ] Add SMS / email notifications for order confirmation
@@ -300,6 +312,30 @@ The `customerId` is always derived from the JWT — never from the request.
 - [ ] Add reporting and revenue summary to the admin dashboard
 
 ---
+
+## Deployment
+
+| Tier | Platform | Notes |
+|---|---|---|
+| **Frontend** | **Vercel** | Built with `vite build`, which auto-loads `frontend/.env.production` (`VITE_API_URL` → the Render backend). Served at `https://kaba-rent.vercel.app`. |
+| **Backend** | **Render** (free tier) | Containerized via `backend/Dockerfile`; served at `https://kabarent.onrender.com`. Reads `DB_*`, `JWT_SECRET`, and `ADMIN_*` from the environment. |
+| **Database** | **Neon** (serverless Postgres) | Connection injected via `DB_URL`/`DB_USER`/`DB_PASSWORD`. |
+
+CORS allows exactly the local dev origin and the Vercel origin (no trailing slash).
+
+**Cold starts:** Render's free tier spins the backend down when idle (~60s to wake). A public,
+**DB-free** `GET /health` endpoint is pinged by an **external** keep-alive cron (no in-repo
+scheduler) to keep the service warm without waking the Neon database. The frontend also tolerates a
+cold start (raised timeout, transport-error retry, and a non-blocking "waking the server" hint).
+
+## Migrations
+
+There is no migration tool (Flyway/Liquibase); the schema is managed by Hibernate
+`ddl-auto=update`. Because `ddl-auto` **cannot drop a `NOT NULL` constraint or backfill data**, the
+**email→phone identity cutover** was applied **manually** as a one-off transaction in the Neon SQL
+console — see [`db/migration/phase_b_phone_identity.sql`](./db/migration/phase_b_phone_identity.sql).
+It backfills existing phone numbers to canonical E.164, drops `email NOT NULL`, and adds the
+`uq_customers_phone` unique constraint. Apply any similar irreversible schema change the same way.
 
 ## Contributing
 

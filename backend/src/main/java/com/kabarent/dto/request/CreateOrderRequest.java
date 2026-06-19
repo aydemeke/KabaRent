@@ -15,11 +15,11 @@ public class CreateOrderRequest {
 
     /**
      * Existing customer id (used by admin / known-customer flows). Optional: guest checkout
-     * instead supplies {@link #customer} details, which are find-or-created by email server-side.
+     * instead supplies {@link #customer} details, which are find-or-created by phone server-side.
      */
     private Long customerId;
 
-    /** Guest checkout customer details (find-or-create by email). Required when {@link #customerId} is absent. */
+    /** Guest checkout customer details (find-or-create by phone). Required when {@link #customerId} is absent. */
     @Valid
     private CustomerRequest customer;
 
