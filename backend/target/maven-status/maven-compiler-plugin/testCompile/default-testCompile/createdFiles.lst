@@ -1,8 +1,0 @@
-com\kabarent\security\SecurityAuthorizationTest.class
-com\kabarent\repository\OrderItemRepositoryIT.class
-com\kabarent\service\AuthServiceTest.class
-com\kabarent\service\OrderServiceTest.class
-com\kabarent\service\AvailabilityServiceTest.class
-com\kabarent\service\OrderServiceCustomerTest.class
-com\kabarent\service\PaymentServiceTest.class
-com\kabarent\security\CustomerUserDetailsServiceTest.class
