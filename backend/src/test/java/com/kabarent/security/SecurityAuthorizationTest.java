@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -38,6 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @Import({SecurityConfig.class, CorsConfig.class, JwtAuthenticationFilter.class, JwtService.class,
         com.kabarent.service.PhoneNumberService.class})
+// @WebMvcTest auto-loads WebConfig (a WebMvcConfigurer); disable the order rate limiter so this
+// test stays focused on authorization/validation and is not affected by request throttling.
+@TestPropertySource(properties = "app.rate-limit.enabled=false")
 class SecurityAuthorizationTest {
 
     @Autowired private MockMvc mockMvc;

@@ -87,6 +87,13 @@
             <version>9.0.32</version>
         </dependency>
 
+        <!-- Rate limiting (in-memory token bucket for public POST /api/orders) -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
+            <version>8.19.0</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
