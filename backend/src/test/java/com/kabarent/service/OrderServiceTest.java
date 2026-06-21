@@ -8,10 +8,12 @@ import com.kabarent.dto.response.OrderResponse;
 import com.kabarent.exception.AvailabilityException;
 import com.kabarent.exception.ResourceNotFoundException;
 import com.kabarent.model.Customer;
+import com.kabarent.model.IdempotencyRecord;
 import com.kabarent.model.Kaba;
 import com.kabarent.model.Order;
 import com.kabarent.model.OrderItem;
 import com.kabarent.model.enums.OrderStatus;
+import com.kabarent.repository.IdempotencyRecordRepository;
 import com.kabarent.repository.KabaRepository;
 import com.kabarent.repository.OrderRepository;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -36,6 +40,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +58,8 @@ class OrderServiceTest {
     @Mock private KabaService kabaService;
     @Mock private AvailabilityService availabilityService;
     @Mock private KabaRepository kabaRepository;
+    @Mock private IdempotencyRecordRepository idempotencyRecordRepository;
+    @Mock private ObjectProvider<OrderService> self;
     @InjectMocks private OrderService orderService;
 
     // ---------- helpers ----------
@@ -208,6 +215,100 @@ class OrderServiceTest {
         req.setCustomer(null);
 
         assertThatThrownBy(() -> orderService.create(req)).isInstanceOf(IllegalArgumentException.class);
+        verify(orderRepository, never()).save(any());
+    }
+
+    // ---------- create with Idempotency-Key ----------
+
+    /** Stubs the collaborators a single-item create needs, and assigns id {@code orderId} on save. */
+    private void stubSingleItemCreate(CreateOrderRequest req, long orderId) {
+        when(customerService.findOrThrow(5L)).thenReturn(customer());
+        when(kabaService.findOrThrow(1L)).thenReturn(kaba(1L, "Black Gold", "100"));
+        when(availabilityService.isAvailable(1L, req.getEventDate(), req.getReturnDate(), 1)).thenReturn(true);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> {
+            Order o = inv.getArgument(0);
+            o.setId(orderId);
+            return o;
+        });
+    }
+
+    // OI1 (a) — same key twice creates exactly one order and returns the same id both times.
+    @Test
+    void create_sameIdempotencyKeyTwice_createsOneOrderAndReturnsSameId() {
+        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
+        when(self.getObject()).thenReturn(orderService);
+        stubSingleItemCreate(req, 100L);
+        // First call: key unseen -> create + record it. Second call: key now exists -> fast path.
+        when(idempotencyRecordRepository.findByIdempotencyKey("key-1"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(IdempotencyRecord.builder().idempotencyKey("key-1").orderId(100L).build()));
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(orderWith(100L, OrderStatus.PENDING)));
+
+        OrderResponse first = orderService.create(req, "key-1");
+        OrderResponse second = orderService.create(req, "key-1");
+
+        assertThat(first.getId()).isEqualTo(100L);
+        assertThat(second.getId()).isEqualTo(first.getId());
+        verify(orderRepository, times(1)).save(any(Order.class)); // exactly one order created
+    }
+
+    // OI2 (b) — a different key, and no key at all, each create a new order.
+    @Test
+    void create_differentKeyAndNoKey_eachCreateNewOrder() {
+        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
+        when(self.getObject()).thenReturn(orderService);
+        stubSingleItemCreate(req, 100L);
+        when(idempotencyRecordRepository.findByIdempotencyKey("key-2")).thenReturn(Optional.empty());
+
+        orderService.create(req, null);     // no key -> plain create path
+        orderService.create(req, "key-2");  // new, unseen key -> idempotent create path
+
+        verify(orderRepository, times(2)).save(any(Order.class));
+    }
+
+    // OI3 (c) — fast path: a record already exists for the key -> return it, create nothing.
+    @Test
+    void create_existingIdempotencyRecord_returnsExistingOrderWithoutCreating() {
+        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
+        when(idempotencyRecordRepository.findByIdempotencyKey("key-3"))
+                .thenReturn(Optional.of(IdempotencyRecord.builder().idempotencyKey("key-3").orderId(100L).build()));
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(orderWith(100L, OrderStatus.PENDING)));
+
+        OrderResponse resp = orderService.create(req, "key-3");
+
+        assertThat(resp.getId()).isEqualTo(100L);
+        verify(orderRepository, never()).save(any());
+    }
+
+    // OI4 (d) — concurrent race: the inner insert hits the unique key (DataIntegrityViolationException);
+    // our transaction rolls back and the outer method re-reads and returns the winner's order.
+    @Test
+    void create_uniqueKeyConflict_reReadsAndReturnsWinnerOrder() {
+        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
+        when(self.getObject()).thenReturn(orderService);
+        stubSingleItemCreate(req, 101L); // our (rolled-back) attempt would have been 101
+        when(idempotencyRecordRepository.saveAndFlush(any()))
+                .thenThrow(new DataIntegrityViolationException("duplicate idempotency_key"));
+        when(idempotencyRecordRepository.findByIdempotencyKey("key-4"))
+                .thenReturn(Optional.empty()) // initial check: unseen
+                .thenReturn(Optional.of(IdempotencyRecord.builder().idempotencyKey("key-4").orderId(200L).build())); // winner
+        when(orderRepository.findById(200L)).thenReturn(Optional.of(orderWith(200L, OrderStatus.PENDING)));
+
+        OrderResponse resp = orderService.create(req, "key-4");
+
+        assertThat(resp.getId()).isEqualTo(200L); // winner's order, not our rolled-back 101
+        verify(orderRepository).findById(200L);
+    }
+
+    // OI5 — an over-long key is rejected as a bad request (IllegalArgumentException -> 400),
+    // not allowed to overflow the column and surface as a 409.
+    @Test
+    void create_idempotencyKeyTooLong_throwsIllegalArgument() {
+        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
+        String tooLong = "x".repeat(65); // column is varchar(64)
+
+        assertThatThrownBy(() -> orderService.create(req, tooLong))
+                .isInstanceOf(IllegalArgumentException.class);
         verify(orderRepository, never()).save(any());
     }
 

@@ -59,6 +59,12 @@ export default function NewOrderPage() {
   const [error, setError] = useState('')
   const [loadingKabas, setLoadingKabas] = useState(true)
 
+  // One idempotency key per checkout attempt, stable across re-renders and retries of the SAME
+  // submission (the lazy initializer runs once), so double-clicks / cold-start retries dedupe to a
+  // single order. Rotated only after a successful submit (see handleSubmit) so a subsequent, genuinely
+  // new order on this same mounted page gets a fresh key instead of being deduped to the first.
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID())
+
   useEffect(() => {
     getAll().then(setKabas).finally(() => setLoadingKabas(false))
   }, [])
@@ -95,7 +101,10 @@ export default function NewOrderPage() {
         customer: { fullName, phone, email },
         eventDate, returnDate, notes,
         items: [{ kabaId: Number(kabaId), quantity }],
-      })
+      }, { headers: { 'Idempotency-Key': idempotencyKey } })
+      // Success only: rotate the key so a further new order from this same mount isn't deduped to
+      // this one. A failed submit deliberately keeps the current key so its retry stays idempotent.
+      setIdempotencyKey(crypto.randomUUID())
       // Pass the created order via router state so the status page renders without a fetch
       // (GET /api/orders/{id} is admin-only; sequential ids must never be publicly readable).
       navigate(`/order/${order.id}`, { state: { order } })

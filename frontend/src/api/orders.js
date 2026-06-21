@@ -6,8 +6,8 @@ export const getAll = (status) =>
 export const getById = (id) =>
   api.get(`/orders/${id}`).then(r => r.data)
 
-export const create = (data) =>
-  api.post('/orders', data).then(r => r.data)
+export const create = (data, config) =>
+  api.post('/orders', data, config).then(r => r.data)
 
 export const updateStatus = (id, status) =>
   api.put(`/orders/${id}/status`, { status }).then(r => r.data)

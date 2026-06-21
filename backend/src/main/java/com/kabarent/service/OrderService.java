@@ -8,9 +8,12 @@ import com.kabarent.exception.AvailabilityException;
 import com.kabarent.exception.ResourceNotFoundException;
 import com.kabarent.model.*;
 import com.kabarent.model.enums.OrderStatus;
+import com.kabarent.repository.IdempotencyRecordRepository;
 import com.kabarent.repository.KabaRepository;
 import com.kabarent.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +32,81 @@ public class OrderService {
     private final KabaService kabaService;
     private final AvailabilityService availabilityService;
     private final KabaRepository kabaRepository;
+    private final IdempotencyRecordRepository idempotencyRecordRepository;
+    /**
+     * Self-reference used to invoke {@link #createWithIdempotency} / {@link #create(CreateOrderRequest)}
+     * through the Spring proxy. A plain {@code this.} call would be self-invocation and bypass the
+     * transactional proxy, so the inner method would not run in its own transaction. Injected lazily
+     * via {@link ObjectProvider} to avoid a construction-time circular dependency.
+     */
+    private final ObjectProvider<OrderService> self;
+
+    /** Max idempotency key length; mirrors the {@code idempotency_records.idempotency_key} column. */
+    private static final int MAX_IDEMPOTENCY_KEY_LENGTH = 64;
+
+    /**
+     * Idempotent order creation. When an {@code Idempotency-Key} is supplied, a retried or
+     * double-submitted checkout returns the original order instead of creating a duplicate.
+     * When the key is absent/blank, behaves exactly like {@link #create(CreateOrderRequest)}.
+     *
+     * <p>The key is matched on the string only, not on a request fingerprint: reusing the same key
+     * with a different request body returns the order created by the first call, ignoring the new body.
+     *
+     * <p>This is the public entry point and is deliberately NOT {@code @Transactional}: it must be
+     * able to catch a unique-key conflict thrown by the inner transaction and then re-read in a
+     * fresh transaction. (The lazy {@code items} mapping in the fast-path/re-read works outside an
+     * explicit transaction via Spring's open-in-view, consistent with {@link #getById}.)
+     */
+    public OrderResponse create(CreateOrderRequest request, String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return self.getObject().create(request);
+        }
+        // Reject an over-long key up front (400) rather than letting it overflow the column at
+        // insert time and surface as a misleading 409 data-integrity error.
+        if (idempotencyKey.length() > MAX_IDEMPOTENCY_KEY_LENGTH) {
+            throw new IllegalArgumentException("Idempotency-Key must be at most 64 characters");
+        }
+
+        // Fast path: this key already created an order — return it, never create a second.
+        Optional<IdempotencyRecord> existing = idempotencyRecordRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            return OrderResponse.from(findOrThrow(existing.get().getOrderId()));
+        }
+
+        try {
+            return self.getObject().createWithIdempotency(idempotencyKey, request);
+        } catch (DataIntegrityViolationException e) {
+            // A concurrent request won the race and took the unique key; OUR inner transaction
+            // fully rolled back, so no orphan order exists. Re-read and return the winner's order.
+            return idempotencyRecordRepository.findByIdempotencyKey(idempotencyKey)
+                    .map(rec -> OrderResponse.from(findOrThrow(rec.getOrderId())))
+                    .orElseThrow(() -> e); // no record -> a different integrity error -> rethrow
+        }
+    }
+
+    /**
+     * Inner step of idempotent creation: persists the order AND its idempotency record in a single
+     * transaction. {@code saveAndFlush} forces the unique-constraint check to surface HERE, so on a
+     * conflict the order and record roll back together (no orphan order). The exception is NOT
+     * caught here — a rollback-only transaction cannot continue; it propagates to {@code create}.
+     */
+    @Transactional
+    public OrderResponse createWithIdempotency(String idempotencyKey, CreateOrderRequest request) {
+        Order order = persistNewOrder(request);
+        idempotencyRecordRepository.saveAndFlush(IdempotencyRecord.builder()
+                .idempotencyKey(idempotencyKey)
+                .orderId(order.getId())
+                .build());
+        return OrderResponse.from(order);
+    }
 
     @Transactional
     public OrderResponse create(CreateOrderRequest request) {
+        return OrderResponse.from(persistNewOrder(request));
+    }
+
+    /** Builds and persists a new order (shared by the plain and idempotent create paths). */
+    private Order persistNewOrder(CreateOrderRequest request) {
         validateDates(request);
 
         Customer customer = resolveCustomer(request);
@@ -75,7 +151,7 @@ public class OrderService {
         }
         order.getItems().addAll(items);
 
-        return OrderResponse.from(orderRepository.save(order));
+        return orderRepository.save(order);
     }
 
     public List<OrderResponse> listAll(OrderStatus status) {
