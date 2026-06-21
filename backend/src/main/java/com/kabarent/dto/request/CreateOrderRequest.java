@@ -1,7 +1,7 @@
 package com.kabarent.dto.request;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -24,6 +24,7 @@ public class CreateOrderRequest {
     private CustomerRequest customer;
 
     @NotNull(message = "Event date is required")
+    @FutureOrPresent(message = "Event date cannot be in the past")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate eventDate;
 

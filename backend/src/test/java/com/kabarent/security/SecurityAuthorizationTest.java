@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -125,6 +126,18 @@ class SecurityAuthorizationTest {
         // Empty body → 400 (validation) proves the request was NOT blocked by 401/403.
         mockMvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void guestOrderCreation_pastEventDate_isBadRequest() throws Exception {
+        // An otherwise-valid body with a past eventDate must be rejected by @FutureOrPresent.
+        String body = String.format(
+                "{\"customerId\":1,\"eventDate\":\"%s\",\"returnDate\":\"%s\","
+                        + "\"items\":[{\"kabaId\":1,\"quantity\":1}]}",
+                LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+        mockMvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details.eventDate").value("Event date cannot be in the past"));
     }
 
     @Test
