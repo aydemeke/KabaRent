@@ -17,7 +17,9 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -67,8 +69,9 @@ class OrderRateLimitInterceptorTest {
 
     /** Fresh interceptor (and thus a fresh bucket store) per call → deterministic, isolated. */
     private MockMvc mockMvcWithLimit(int perMinute, int perHour) {
-        OrderRateLimitInterceptor interceptor =
-                new OrderRateLimitInterceptor(new ObjectMapper(), true, perMinute, perHour);
+        RateLimitInterceptor interceptor = new RateLimitInterceptor(new ObjectMapper(), true, List.of(
+                RateLimitInterceptor.limit(perMinute, Duration.ofMinutes(1)),
+                RateLimitInterceptor.limit(perHour, Duration.ofHours(1))));
         return MockMvcBuilders.standaloneSetup(new OrderController(orderService))
                 .setCustomArgumentResolvers(PRINCIPAL_RESOLVER)
                 .addInterceptors(interceptor)
