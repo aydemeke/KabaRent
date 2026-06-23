@@ -45,9 +45,10 @@ public class Customer {
     private String notes;
 
     /**
-     * BCrypt hash. Nullable: guest customers (created via order checkout) have no
-     * password and cannot log in, but remain valid order customers. Set when a guest
-     * registers, upgrading the same row to a real account.
+     * BCrypt hash. Nullable: password-less customers (e.g. created by admin via
+     * POST /api/customers) cannot log in but remain valid order customers. Set when
+     * someone registers with that phone, upgrading the same row to a real account in
+     * place (which links any existing orders on that row to the new account).
      */
     @Column(name = "password_hash", length = 100)
     private String passwordHash;

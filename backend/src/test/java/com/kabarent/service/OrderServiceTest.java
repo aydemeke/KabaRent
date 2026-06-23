@@ -1,7 +1,6 @@
 package com.kabarent.service;
 
 import com.kabarent.dto.request.CreateOrderRequest;
-import com.kabarent.dto.request.CustomerRequest;
 import com.kabarent.dto.request.OrderItemRequest;
 import com.kabarent.dto.request.UpdateOrderStatusRequest;
 import com.kabarent.dto.response.OrderResponse;
@@ -72,9 +71,11 @@ class OrderServiceTest {
         return Kaba.builder().id(id).name(name).pricePerDay(new BigDecimal(price)).quantity(10).active(true).build();
     }
 
+    /** Customer id derived from the JWT principal and passed into {@code create} (no longer in the body). */
+    private static final long CUSTOMER_ID = 5L;
+
     private CreateOrderRequest createRequest(LocalDate event, LocalDate ret, OrderItemRequest... items) {
         CreateOrderRequest req = new CreateOrderRequest();
-        req.setCustomerId(5L);
         req.setEventDate(event);
         req.setReturnDate(ret);
         req.setItems(List.of(items));
@@ -111,7 +112,7 @@ class OrderServiceTest {
         when(availabilityService.isAvailable(2L, req.getEventDate(), req.getReturnDate(), 1)).thenReturn(true);
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        orderService.create(req);
+        orderService.create(req, CUSTOMER_ID);
 
         ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepository).save(captor.capture());
@@ -130,8 +131,8 @@ class OrderServiceTest {
         CreateOrderRequest equalDates = createRequest(EVENT, EVENT, item(1L, 1));
         CreateOrderRequest reversed = createRequest(EVENT, EVENT.minusDays(1), item(1L, 1));
 
-        assertThatThrownBy(() -> orderService.create(equalDates)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> orderService.create(reversed)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> orderService.create(equalDates, CUSTOMER_ID)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> orderService.create(reversed, CUSTOMER_ID)).isInstanceOf(IllegalArgumentException.class);
 
         verify(orderRepository, never()).save(any());
     }
@@ -144,7 +145,7 @@ class OrderServiceTest {
         when(kabaService.findOrThrow(1L)).thenReturn(kaba(1L, "Black Gold", "100"));
         when(availabilityService.isAvailable(1L, req.getEventDate(), req.getReturnDate(), 4)).thenReturn(false);
 
-        assertThatThrownBy(() -> orderService.create(req)).isInstanceOf(AvailabilityException.class);
+        assertThatThrownBy(() -> orderService.create(req, CUSTOMER_ID)).isInstanceOf(AvailabilityException.class);
         verify(orderRepository, never()).save(any());
     }
 
@@ -154,7 +155,7 @@ class OrderServiceTest {
         CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
         when(customerService.findOrThrow(5L)).thenThrow(new ResourceNotFoundException("no customer"));
 
-        assertThatThrownBy(() -> orderService.create(req)).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> orderService.create(req, CUSTOMER_ID)).isInstanceOf(ResourceNotFoundException.class);
         verify(orderRepository, never()).save(any());
     }
 
@@ -165,7 +166,7 @@ class OrderServiceTest {
         when(customerService.findOrThrow(5L)).thenReturn(customer());
         when(kabaService.findOrThrow(1L)).thenThrow(new ResourceNotFoundException("no kaba"));
 
-        assertThatThrownBy(() -> orderService.create(req)).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> orderService.create(req, CUSTOMER_ID)).isInstanceOf(ResourceNotFoundException.class);
         verify(orderRepository, never()).save(any());
     }
 
@@ -178,44 +179,11 @@ class OrderServiceTest {
         when(availabilityService.isAvailable(1L, req.getEventDate(), req.getReturnDate(), 1)).thenReturn(true);
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        orderService.create(req);
+        orderService.create(req, CUSTOMER_ID);
 
         ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepository).save(captor.capture());
         assertThat(captor.getValue().getTotalPrice()).isEqualByComparingTo("100"); // 100*1*1
-    }
-
-    // O1b — guest checkout: no customerId, customer details find-or-created by phone
-    @Test
-    void create_guestCheckout_findsOrCreatesCustomerByPhone() {
-        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
-        req.setCustomerId(null);
-        CustomerRequest guest = new CustomerRequest();
-        guest.setFullName("Sara");
-        guest.setPhone("050-1234567");
-        guest.setEmail("s@x.com");
-        req.setCustomer(guest);
-
-        when(customerService.findOrCreateByPhone(guest)).thenReturn(customer());
-        when(kabaService.findOrThrow(1L)).thenReturn(kaba(1L, "Black Gold", "100"));
-        when(availabilityService.isAvailable(1L, req.getEventDate(), req.getReturnDate(), 1)).thenReturn(true);
-        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        orderService.create(req);
-
-        verify(customerService).findOrCreateByPhone(guest);
-        verify(orderRepository).save(any(Order.class));
-    }
-
-    // O1c — neither customerId nor customer details → 400
-    @Test
-    void create_noCustomerIdOrDetails_throwsIllegalArgument() {
-        CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
-        req.setCustomerId(null);
-        req.setCustomer(null);
-
-        assertThatThrownBy(() -> orderService.create(req)).isInstanceOf(IllegalArgumentException.class);
-        verify(orderRepository, never()).save(any());
     }
 
     // ---------- create with Idempotency-Key ----------
@@ -244,8 +212,8 @@ class OrderServiceTest {
                 .thenReturn(Optional.of(IdempotencyRecord.builder().idempotencyKey("key-1").orderId(100L).build()));
         when(orderRepository.findById(100L)).thenReturn(Optional.of(orderWith(100L, OrderStatus.PENDING)));
 
-        OrderResponse first = orderService.create(req, "key-1");
-        OrderResponse second = orderService.create(req, "key-1");
+        OrderResponse first = orderService.create(req, "key-1", CUSTOMER_ID);
+        OrderResponse second = orderService.create(req, "key-1", CUSTOMER_ID);
 
         assertThat(first.getId()).isEqualTo(100L);
         assertThat(second.getId()).isEqualTo(first.getId());
@@ -260,8 +228,8 @@ class OrderServiceTest {
         stubSingleItemCreate(req, 100L);
         when(idempotencyRecordRepository.findByIdempotencyKey("key-2")).thenReturn(Optional.empty());
 
-        orderService.create(req, null);     // no key -> plain create path
-        orderService.create(req, "key-2");  // new, unseen key -> idempotent create path
+        orderService.create(req, null, CUSTOMER_ID);     // no key -> plain create path
+        orderService.create(req, "key-2", CUSTOMER_ID);  // new, unseen key -> idempotent create path
 
         verify(orderRepository, times(2)).save(any(Order.class));
     }
@@ -274,7 +242,7 @@ class OrderServiceTest {
                 .thenReturn(Optional.of(IdempotencyRecord.builder().idempotencyKey("key-3").orderId(100L).build()));
         when(orderRepository.findById(100L)).thenReturn(Optional.of(orderWith(100L, OrderStatus.PENDING)));
 
-        OrderResponse resp = orderService.create(req, "key-3");
+        OrderResponse resp = orderService.create(req, "key-3", CUSTOMER_ID);
 
         assertThat(resp.getId()).isEqualTo(100L);
         verify(orderRepository, never()).save(any());
@@ -294,7 +262,7 @@ class OrderServiceTest {
                 .thenReturn(Optional.of(IdempotencyRecord.builder().idempotencyKey("key-4").orderId(200L).build())); // winner
         when(orderRepository.findById(200L)).thenReturn(Optional.of(orderWith(200L, OrderStatus.PENDING)));
 
-        OrderResponse resp = orderService.create(req, "key-4");
+        OrderResponse resp = orderService.create(req, "key-4", CUSTOMER_ID);
 
         assertThat(resp.getId()).isEqualTo(200L); // winner's order, not our rolled-back 101
         verify(orderRepository).findById(200L);
@@ -307,7 +275,7 @@ class OrderServiceTest {
         CreateOrderRequest req = createRequest(EVENT, EVENT.plusDays(2), item(1L, 1));
         String tooLong = "x".repeat(65); // column is varchar(64)
 
-        assertThatThrownBy(() -> orderService.create(req, tooLong))
+        assertThatThrownBy(() -> orderService.create(req, tooLong, CUSTOMER_ID))
                 .isInstanceOf(IllegalArgumentException.class);
         verify(orderRepository, never()).save(any());
     }

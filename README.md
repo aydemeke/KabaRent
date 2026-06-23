@@ -238,7 +238,7 @@ The `customerId` is always derived from the JWT — never from the request.
 
 | Method | Path | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/orders` | Public | Place an order. Guest checkout supplies `customer: { fullName, phone, email }` (find-or-created **by phone**; email optional); admin/known flows may pass `customerId`. |
+| `POST` | `/api/orders` | Customer | Place an order. Requires an authenticated `ROLE_CUSTOMER`; the order is attached to the customer from the JWT (no customer details in the body). Guest checkout is disabled. |
 | `GET` | `/api/orders?status=` | Admin | List all orders (optional status filter) |
 | `GET` | `/api/orders/{id}` | Admin | Get order details (with items) — **not public** (sequential ids); customers use `/api/my/orders/{id}` |
 | `GET` | `/api/orders/customer/{customerId}` | Admin | List a customer's orders |
@@ -263,7 +263,7 @@ The `customerId` is always derived from the JWT — never from the request.
 - **Quantity-based availability** — multiple units per Kaba; bookings are tracked per overlapping date range
 - **Order lifecycle** — status transitions managed from the admin dashboard, with a confirm-time row lock to prevent overbooking
 - **Split payments** — an order can receive multiple partial payments; the total cannot exceed the order price
-- **Customer accounts** — phone-based register/login (Hebrew RTL); "My Orders" shows a customer's own orders, balances, and lets them self-cancel pending orders. Guest checkout still works and links to the account on registration (same phone)
+- **Customer accounts** — phone-based register/login (Hebrew RTL); ordering requires an account (the order is attached to the logged-in customer); "My Orders" shows a customer's own orders, balances, and lets them self-cancel pending orders
 - **Real admin authentication** — Spring Security + JWT; the admin area requires a `ROLE_ADMIN` login
 - **Admin dashboard** — manages inventory, orders, customers, and payments
 - **Hebrew (RTL) customer portal** — including footer-linked info pages (about, FAQ, contact, terms, returns, privacy)
@@ -282,7 +282,7 @@ The `customerId` is always derived from the JWT — never from the request.
   - `ACTIVE → COMPLETED`
   - `COMPLETED` and `CANCELLED` are terminal (an `ACTIVE` order cannot be cancelled)
 - Identity is **phone-based**: customers log in with phone + password (phone stored as canonical E.164 via libphonenumber, region IL; NOT NULL + UNIQUE), email is optional. Admin logs in with email + password. A single `/api/auth/login` sniffs the identifier (`@` → email/admin, else phone/customer).
-- Customers are matched by phone — a returning customer reuses their existing record; registering with a guest's phone upgrades that same record to an account (linking past orders)
+- Customers are matched by phone — a returning customer reuses their existing record; registering with the phone of a password-less record (e.g. one an admin entered) upgrades that same record to an account in place (linking any past orders on it)
 - API access is fail-closed across three tiers (public / `ROLE_CUSTOMER` / `ROLE_ADMIN`); `customerId` is always derived from the JWT, and customers can only see/cancel their own orders
 - Customer self-cancellation is limited to `PENDING` orders; cancelling a `CONFIRMED` order must go through admin
 

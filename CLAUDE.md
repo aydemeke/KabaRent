@@ -53,10 +53,10 @@ Standard layered architecture: `Controller → Service → Repository → Postgr
 - `config/` — `CorsConfig` (`CorsConfigurationSource` consumed by Spring Security), `SecurityConfig`, `DataInitializer` (seeds the admin user from env via `CommandLineRunner`)
 
 **Authorization (Spring Security 6, stateless JWT) — fail closed (`anyRequest().authenticated()`):**
-- **Public:** `POST /api/auth/**`, `GET /api/kabas/**`, `POST /api/orders` (guest checkout).
-- **ROLE_CUSTOMER:** `/api/my/**` only.
+- **Public:** `POST /api/auth/**`, `GET /api/kabas/**`.
+- **ROLE_CUSTOMER:** `POST /api/orders` (place an order — guest checkout is disabled; the customer is taken from the JWT principal, not the body) and `/api/my/**`.
 - **ROLE_ADMIN:** everything else — `GET/PUT /api/orders/**` (incl. `GET /api/orders/{id}`, which is **never public** because ids are sequential), `/api/customers/**`, `/api/payments/**`, and kaba mutations.
-- **Security-critical:** `customerId` is **always** derived from the JWT principal (`CustomerPrincipal`), never from a request parameter; every `/api/my/**` access is ownership-checked (mismatch → 404).
+- **Security-critical:** `customerId` is **always** derived from the JWT principal (`CustomerPrincipal`) — for both `POST /api/orders` and `/api/my/**` — never from the request body/parameter; every `/api/my/**` access is ownership-checked (mismatch → 404).
 
 **Identity / login model (phone-based):**
 - **Customers log in by phone + password.** Phone is the canonical **E.164** identity, normalized via `PhoneNumberService.normalizeToE164` (Google libphonenumber, default region **IL**); it is the single point of truth — nothing else normalizes phone numbers. `customers.phone` is NOT NULL + UNIQUE; `email` is optional (nullable, unique-when-present, blanks coerced to NULL).
@@ -73,7 +73,8 @@ Standard layered architecture: `Controller → Service → Repository → Postgr
   - `ACTIVE → COMPLETED`
   - `COMPLETED` and `CANCELLED` are **terminal** (no transitions out). In particular, an `ACTIVE` order **cannot** be cancelled.
 - Payments are split-allowed but the sum of `COMPLETED` payments cannot exceed the order's `totalPrice`; fully-paid orders reject further payments.
-- Customers are **find-or-create by phone**: `CustomerService.findOrCreateByPhone` normalizes the phone to E.164 and returns the existing customer or creates a new one, avoiding `UNIQUE(phone)` violations for returning customers. Guest checkout (`POST /api/orders`) passes `customer` details and find-or-creates server-side (keyed on phone; email optional); registering with a guest's phone **upgrades that same row in place** (sets `passwordHash`, `role=CUSTOMER`), which auto-links the guest's past orders to the account. Registering a phone that already has a `passwordHash` → 409 (`PhoneAlreadyRegisteredException`).
+- **Order customer comes from the JWT:** placing an order (`POST /api/orders`, ROLE_CUSTOMER) attaches it to the authenticated customer (`CustomerPrincipal.getId()` → `CustomerService.findOrThrow`); no customer details are accepted from the request body, so a user cannot order under another person's phone. Guest ordering is disabled.
+- Customers are **find-or-create by phone**: `CustomerService.findOrCreateByPhone` normalizes the phone to E.164 and returns the existing customer or creates a new one, avoiding `UNIQUE(phone)` violations. It now backs **admin customer creation** (`POST /api/customers`). Registering with a phone that has **no `passwordHash`** (e.g. a row admin entered) **upgrades that same row in place** (sets `passwordHash`, `role=CUSTOMER`), which auto-links any past orders on that row to the account. Registering a phone that already has a `passwordHash` → 409 (`PhoneAlreadyRegisteredException`).
 - **Customer self-cancel** (`POST /api/my/orders/{id}/cancel`) is restricted to **PENDING** orders only; CONFIRMED orders must be cancelled by admin. (Cancelling a PENDING order releases no inventory, since PENDING reserves none.)
 - Kabas use soft delete (`active` boolean); they remain in DB but are hidden from customer/active views.
 
@@ -87,8 +88,8 @@ Order (1) → (∞) Payment
 
 **Routing** (`App.jsx` with React Router v7):
 - `/` — `BrowsePage` (customer landing: search by date, availability grid)
-- `/order/new` — `NewOrderPage` (multi-step booking, reads `kabaId`/`eventDate`/`returnDate` from query params)
-- `/order/:id` — `OrderStatusPage` (post-checkout: renders the order from router state; on a cold visit with no session it redirects to `/register`, since order reads are not public)
+- `/order/new` — `NewOrderPage` (multi-step booking, reads `kabaId`/`eventDate`/`returnDate` from query params; **wrapped in `RequireCustomer`** — a logged-out visitor is redirected to `/login` with the full path+query preserved, since ordering requires an account)
+- `/order/:id` — `OrderStatusPage` (post-checkout: renders the order from router state; **wrapped in `RequireCustomer`**, so a logged-out visitor is redirected to `/login`, since order reads are not public)
 - `/login`, `/register` — customer auth (Hebrew RTL); `/customer/orders` + `/customer/orders/:id` — "My Orders" (wrapped in `RequireCustomer`)
 - Content/info pages: `/about`, `/how-it-works`, `/faq`, `/contact`, `/rental-terms`, `/returns`, `/privacy` (rendered via the shared `ContentLayout` overlay; reached from the `Footer`)
 - `/admin/*` — All admin pages wrapped in `AdminGuard` (now a real `ROLE_ADMIN` JWT login, not a placeholder)

@@ -68,8 +68,8 @@ function AppLayout() {
           <Routes>
             {/* Customer portal */}
             <Route path="/" element={<BrowsePage />} />
-            <Route path="/order/new" element={<NewOrderPage />} />
-            <Route path="/order/:id" element={<OrderStatusPage />} />
+            <Route path="/order/new" element={<RequireCustomer><NewOrderPage /></RequireCustomer>} />
+            <Route path="/order/:id" element={<RequireCustomer><OrderStatusPage /></RequireCustomer>} />
 
             {/* Customer accounts */}
             <Route path="/login" element={<LoginPage />} />

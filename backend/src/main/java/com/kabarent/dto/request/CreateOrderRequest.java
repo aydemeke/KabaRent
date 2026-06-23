@@ -13,15 +13,8 @@ import java.util.List;
 @Data
 public class CreateOrderRequest {
 
-    /**
-     * Existing customer id (used by admin / known-customer flows). Optional: guest checkout
-     * instead supplies {@link #customer} details, which are find-or-created by phone server-side.
-     */
-    private Long customerId;
-
-    /** Guest checkout customer details (find-or-create by phone). Required when {@link #customerId} is absent. */
-    @Valid
-    private CustomerRequest customer;
+    // The order's customer is derived from the authenticated JWT principal in the controller,
+    // never from the request body, so a user cannot place an order under another person's identity.
 
     @NotNull(message = "Event date is required")
     @FutureOrPresent(message = "Event date cannot be in the past")
