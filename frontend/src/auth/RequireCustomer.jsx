@@ -6,7 +6,10 @@ export default function RequireCustomer({ children }) {
   const { isLoggedIn } = useAuth()
   const location = useLocation()
   if (!isLoggedIn) {
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
+    // Preserve the query string too: the order intent (kabaId/dates) lives entirely in
+    // location.search, so it must survive the login round-trip.
+    const redirect = encodeURIComponent(location.pathname + location.search)
+    return <Navigate to={`/login?redirect=${redirect}`} replace />
   }
   return children
 }

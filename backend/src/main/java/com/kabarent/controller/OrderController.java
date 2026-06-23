@@ -4,11 +4,13 @@ import com.kabarent.dto.request.CreateOrderRequest;
 import com.kabarent.dto.request.UpdateOrderStatusRequest;
 import com.kabarent.dto.response.OrderResponse;
 import com.kabarent.model.enums.OrderStatus;
+import com.kabarent.security.CustomerPrincipal;
 import com.kabarent.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,8 +25,10 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
             @Valid @RequestBody CreateOrderRequest request,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(request, idempotencyKey));
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @AuthenticationPrincipal CustomerPrincipal principal) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(orderService.create(request, idempotencyKey, principal.getId()));
     }
 
     @GetMapping

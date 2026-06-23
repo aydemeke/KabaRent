@@ -29,8 +29,8 @@ import java.util.Map;
  * Fail-closed security: {@code anyRequest().authenticated()} is the default — nothing
  * falls through to public. Only the explicit matchers below are open or role-restricted.
  *
- * <p>Tiers: public (catalog GETs, auth, guest order creation), ROLE_CUSTOMER (/api/my/**),
- * ROLE_ADMIN (all management operations). Stateless JWT; no server-side session.
+ * <p>Tiers: public (catalog GETs, auth), ROLE_CUSTOMER (order creation via POST /api/orders
+ * and /api/my/**), ROLE_ADMIN (all management operations). Stateless JWT; no server-side session.
  */
 @Configuration
 @EnableWebSecurity
@@ -53,8 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/health").permitAll() // DB-free keep-alive ping
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/kabas/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // guest checkout
                         // --- Customer (own data only) ---
+                        .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER") // place an order (identity from JWT)
                         .requestMatchers("/api/my/**").hasRole("CUSTOMER")
                         // --- Admin (management) ---
                         .requestMatchers(HttpMethod.POST, "/api/kabas/**").hasRole("ADMIN")

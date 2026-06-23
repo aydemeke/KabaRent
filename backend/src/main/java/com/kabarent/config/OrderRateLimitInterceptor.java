@@ -19,9 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Best-effort, per-client rate limiter for the public guest-checkout endpoint
- * (POST /api/orders) — the only unauthenticated, DB-writing route, and thus the main
- * abuse surface (spam orders, customer/order table fill on the free tier).
+ * Best-effort, per-client rate limiter for the order-creation endpoint (POST /api/orders).
+ * Ordering now requires an authenticated CUSTOMER, so this is defense-in-depth behind auth:
+ * it caps how fast a single client can write orders (runaway double-submits, an abusive
+ * account spamming orders / filling the customer/order tables on the free tier).
  *
  * <p>Intentionally limited in scope: it raises the bar against casual abuse and runaway
  * double-submits, NOT a determined attacker rotating IPs/headers.

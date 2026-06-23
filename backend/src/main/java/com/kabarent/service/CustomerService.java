@@ -35,8 +35,9 @@ public class CustomerService {
     /**
      * Returns the existing customer with the given (normalized) phone, or creates a new one
      * if none exists. Phone is the identity key, so the raw phone is normalized to E.164 via
-     * {@link PhoneNumberService} before both the lookup and the insert — preventing the
-     * UNIQUE(phone) violation when a returning customer places another order. Email is optional.
+     * {@link PhoneNumberService} before both the lookup and the insert — so re-entering an
+     * existing customer (e.g. admin re-adding the same phone) reuses the row instead of hitting
+     * the UNIQUE(phone) constraint. Backs admin customer creation ({@link #create}); email is optional.
      */
     public Customer findOrCreateByPhone(CustomerRequest request) {
         String phone = phoneNumberService.normalizeToE164(request.getPhone());

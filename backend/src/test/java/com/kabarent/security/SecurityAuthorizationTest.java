@@ -3,6 +3,7 @@ package com.kabarent.security;
 import com.kabarent.config.CorsConfig;
 import com.kabarent.config.SecurityConfig;
 import com.kabarent.controller.*;
+import com.kabarent.dto.response.OrderResponse;
 import com.kabarent.model.enums.Role;
 import com.kabarent.exception.ResourceNotFoundException;
 import com.kabarent.service.*;
@@ -20,7 +21,10 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -126,20 +130,44 @@ class SecurityAuthorizationTest {
     }
 
     @Test
-    void guestOrderCreation_noToken_passesSecurity() throws Exception {
-        // Empty body → 400 (validation) proves the request was NOT blocked by 401/403.
+    void orderCreation_noToken_isUnauthorized() throws Exception {
+        // Guest checkout is disabled: placing an order requires an authenticated CUSTOMER.
         mockMvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON).content("{}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void guestOrderCreation_pastEventDate_isBadRequest() throws Exception {
-        // An otherwise-valid body with a past eventDate must be rejected by @FutureOrPresent.
+    void orderCreation_asAdmin_isForbidden() throws Exception {
+        // POST /api/orders is CUSTOMER-only; an admin holds ROLE_ADMIN, not ROLE_CUSTOMER.
+        mockMvc.perform(post("/api/orders").with(asAdmin(1L))
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void orderCreation_asCustomer_isCreatedAndAttachedToPrincipal() throws Exception {
+        when(orderService.create(any(), any(), eq(7L)))
+                .thenReturn(OrderResponse.builder().id(1L).build());
         String body = String.format(
-                "{\"customerId\":1,\"eventDate\":\"%s\",\"returnDate\":\"%s\","
+                "{\"eventDate\":\"%s\",\"returnDate\":\"%s\",\"items\":[{\"kabaId\":1,\"quantity\":1}]}",
+                LocalDate.now().plusDays(1), LocalDate.now().plusDays(2));
+        mockMvc.perform(post("/api/orders").with(asCustomer(7L))
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated());
+        // Identity comes from the JWT principal (7L), never from the request body.
+        verify(orderService).create(any(), any(), eq(7L));
+    }
+
+    @Test
+    void orderCreation_asCustomer_pastEventDate_isBadRequest() throws Exception {
+        // Authenticated request clears the auth layer; an otherwise-valid body with a past
+        // eventDate must still be rejected by @FutureOrPresent.
+        String body = String.format(
+                "{\"eventDate\":\"%s\",\"returnDate\":\"%s\","
                         + "\"items\":[{\"kabaId\":1,\"quantity\":1}]}",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
-        mockMvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/orders").with(asCustomer(1L))
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.details.eventDate").value("Event date cannot be in the past"));
     }

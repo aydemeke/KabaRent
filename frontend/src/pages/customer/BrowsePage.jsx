@@ -140,7 +140,6 @@ export default function BrowsePage() {
           onClose={() => setGateOrderPath(null)}
           onLogin={() => navigate(`/login?redirect=${encodeURIComponent(gateOrderPath)}`)}
           onRegister={() => navigate(`/register?redirect=${encodeURIComponent(gateOrderPath)}`)}
-          onGuest={() => navigate(gateOrderPath)}
         />
       )}
 

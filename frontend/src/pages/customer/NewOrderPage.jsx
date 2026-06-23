@@ -48,11 +48,8 @@ export default function NewOrderPage() {
   const [availability, setAvailability] = useState(null)
   const [quantity, setQuantity] = useState(1)
 
-  // Prefill identity for logged-in customers so the order links to their account
-  // (the order is find-or-created by phone; a matching phone attaches it to their record).
-  const [fullName, setFullName] = useState(user?.fullName || '')
-  const [phone, setPhone] = useState(user?.phone || '')
-  const [email, setEmail] = useState(user?.email || '')
+  // Identity comes from the authenticated session (the route is guarded by RequireCustomer,
+  // so `user` is always present); the order is attached to this customer server-side from the JWT.
   const [notes, setNotes] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
@@ -96,9 +93,9 @@ export default function NewOrderPage() {
     }
     setSubmitting(true)
     try {
-      // Guest checkout: the customer is find-or-created by phone on the public order endpoint.
+      // The order is attached to the authenticated customer server-side (from the JWT); no
+      // customer details are sent from the client.
       const order = await createOrder({
-        customer: { fullName, phone, email },
         eventDate, returnDate, notes,
         items: [{ kabaId: Number(kabaId), quantity }],
       }, { headers: { 'Idempotency-Key': idempotencyKey } })
@@ -222,41 +219,19 @@ export default function NewOrderPage() {
         {/* Customer details */}
         <SectionCard step="3" title="פרטי לקוח">
           <div className="space-y-4">
-            <div>
-              <label htmlFor="order-fullname" className="ds-label block mb-1.5">שם מלא</label>
-              <input
-                id="order-fullname"
-                type="text" value={fullName} required
-                onChange={e => setFullName(e.target.value)}
-                placeholder="לדוגמה: שרה כהן"
-                className="ds-input"
-              />
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="order-phone" className="ds-label block mb-1.5">טלפון</label>
-                <input
-                  id="order-phone"
-                  type="tel" value={phone} required autoComplete="tel"
-                  onChange={e => setPhone(e.target.value)}
-                  placeholder="050-1234567"
-                  className="ds-input"
-                />
-                <p className="font-inter text-xs text-on-surface-variant mt-1.5">
-                  מספר ישראלי רגיל — אין צורך בקידומת ‎+972.
-                </p>
+                <span className="ds-label block mb-1.5">שם מלא</span>
+                <p className="font-inter text-on-surface" style={{ fontWeight: 600 }}>{user?.fullName}</p>
               </div>
               <div>
-                <label htmlFor="order-email" className="ds-label block mb-1.5">אימייל (אופציונלי)</label>
-                <input
-                  id="order-email"
-                  type="email" value={email} autoComplete="email"
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="ds-input"
-                />
+                <span className="ds-label block mb-1.5">טלפון</span>
+                <p className="font-inter text-on-surface" style={{ fontWeight: 600 }} dir="ltr">{user?.phone}</p>
               </div>
             </div>
+            <p className="font-inter text-xs text-on-surface-variant">
+              ההזמנה תשויך לחשבון שלך. לעדכון השם או הטלפון פנו אלינו.
+            </p>
             <div>
               <label htmlFor="order-notes" className="ds-label block mb-1.5">הערות (אופציונלי)</label>
               <textarea

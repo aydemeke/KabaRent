@@ -57,9 +57,9 @@ public class OrderService {
      * fresh transaction. (The lazy {@code items} mapping in the fast-path/re-read works outside an
      * explicit transaction via Spring's open-in-view, consistent with {@link #getById}.)
      */
-    public OrderResponse create(CreateOrderRequest request, String idempotencyKey) {
+    public OrderResponse create(CreateOrderRequest request, String idempotencyKey, Long customerId) {
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
-            return self.getObject().create(request);
+            return self.getObject().create(request, customerId);
         }
         // Reject an over-long key up front (400) rather than letting it overflow the column at
         // insert time and surface as a misleading 409 data-integrity error.
@@ -74,7 +74,7 @@ public class OrderService {
         }
 
         try {
-            return self.getObject().createWithIdempotency(idempotencyKey, request);
+            return self.getObject().createWithIdempotency(idempotencyKey, request, customerId);
         } catch (DataIntegrityViolationException e) {
             // A concurrent request won the race and took the unique key; OUR inner transaction
             // fully rolled back, so no orphan order exists. Re-read and return the winner's order.
@@ -91,8 +91,8 @@ public class OrderService {
      * caught here — a rollback-only transaction cannot continue; it propagates to {@code create}.
      */
     @Transactional
-    public OrderResponse createWithIdempotency(String idempotencyKey, CreateOrderRequest request) {
-        Order order = persistNewOrder(request);
+    public OrderResponse createWithIdempotency(String idempotencyKey, CreateOrderRequest request, Long customerId) {
+        Order order = persistNewOrder(request, customerId);
         idempotencyRecordRepository.saveAndFlush(IdempotencyRecord.builder()
                 .idempotencyKey(idempotencyKey)
                 .orderId(order.getId())
@@ -101,15 +101,15 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse create(CreateOrderRequest request) {
-        return OrderResponse.from(persistNewOrder(request));
+    public OrderResponse create(CreateOrderRequest request, Long customerId) {
+        return OrderResponse.from(persistNewOrder(request, customerId));
     }
 
     /** Builds and persists a new order (shared by the plain and idempotent create paths). */
-    private Order persistNewOrder(CreateOrderRequest request) {
+    private Order persistNewOrder(CreateOrderRequest request, Long customerId) {
         validateDates(request);
 
-        Customer customer = resolveCustomer(request);
+        Customer customer = customerService.findOrThrow(customerId);
 
         long rentalDays = ChronoUnit.DAYS.between(request.getEventDate(), request.getReturnDate());
         if (rentalDays < 1) rentalDays = 1;
@@ -242,21 +242,6 @@ public class OrderService {
     private Order findOrThrow(Long id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-    }
-
-    /**
-     * Resolves the order's customer. Known/admin flows pass {@code customerId}; guest checkout
-     * passes {@code customer} details, which are find-or-created by phone (reusing the same row
-     * for returning phones, so the guest's orders later link to their account on registration).
-     */
-    private Customer resolveCustomer(CreateOrderRequest request) {
-        if (request.getCustomerId() != null) {
-            return customerService.findOrThrow(request.getCustomerId());
-        }
-        if (request.getCustomer() != null) {
-            return customerService.findOrCreateByPhone(request.getCustomer());
-        }
-        throw new IllegalArgumentException("Either customerId or customer details are required.");
     }
 
     private void validateDates(CreateOrderRequest request) {

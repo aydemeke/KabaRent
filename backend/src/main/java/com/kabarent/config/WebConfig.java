@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Registers the {@link OrderRateLimitInterceptor} for the public guest-checkout endpoint only.
+ * Registers the {@link OrderRateLimitInterceptor} for the order-creation endpoint (POST /api/orders) only.
  *
  * <p>The interceptor is constructed here (not exposed as a {@code @Component}) on purpose:
  * {@code @WebMvcTest} auto-includes any {@code WebMvcConfigurer}, and a separate interceptor

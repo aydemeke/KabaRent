@@ -1,11 +1,11 @@
 import useModalA11y from '../hooks/useModalA11y'
 
 // Checkout auth gate (Hebrew RTL): shown when a logged-out visitor clicks "הזמן".
-// Offers three paths — log in, register, or continue as guest. The in-progress order
-// intent (kaba id + dates) is preserved by BrowsePage via the existing login/register
-// `redirect` query-param mechanism, so any of these lands the visitor back on the
+// Ordering requires an account, so the gate offers only log in or register. The in-progress
+// order intent (kaba id + dates) is preserved by BrowsePage via the existing login/register
+// `redirect` query-param mechanism, so either path lands the visitor back on the
 // prefilled order form with their selection intact.
-export default function CheckoutAuthGate({ onLogin, onRegister, onGuest, onClose }) {
+export default function CheckoutAuthGate({ onLogin, onRegister, onClose }) {
   const dialogRef = useModalA11y(onClose)
 
   return (
@@ -37,7 +37,7 @@ export default function CheckoutAuthGate({ onLogin, onRegister, onGuest, onClose
           className="font-inter text-on-surface-variant"
           style={{ fontSize: '0.875rem', lineHeight: 1.55, marginBottom: '22px' }}
         >
-          התחברו או הירשמו כדי לעקוב אחר ההזמנות שלכם במקום אחד — או המשיכו כאורח וסיימו במהירות.
+          כדי להזמין יש להתחבר או להירשם. כך תוכלו גם לעקוב אחר ההזמנות שלכם במקום אחד.
         </p>
 
         <div className="flex flex-col" style={{ gap: '10px' }}>
@@ -57,15 +57,6 @@ export default function CheckoutAuthGate({ onLogin, onRegister, onGuest, onClose
             style={{ minHeight: '44px', borderRadius: '0.75rem', fontSize: '0.9375rem' }}
           >
             הירשם
-          </button>
-
-          <button
-            type="button"
-            onClick={onGuest}
-            className="ds-btn-text w-full"
-            style={{ minHeight: '44px' }}
-          >
-            המשך כאורח
           </button>
         </div>
       </div>
