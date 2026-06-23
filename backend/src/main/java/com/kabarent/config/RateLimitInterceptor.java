@@ -14,15 +14,17 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Best-effort, per-client rate limiter for the order-creation endpoint (POST /api/orders).
- * Ordering now requires an authenticated CUSTOMER, so this is defense-in-depth behind auth:
- * it caps how fast a single client can write orders (runaway double-submits, an abusive
- * account spamming orders / filling the customer/order tables on the free tier).
+ * Best-effort, per-client rate limiter for a public, DB-writing endpoint, as defense-in-depth
+ * against casual abuse (spam / table-fill on the free tier). One instance is registered per
+ * protected path (see {@link WebConfig}) with its own {@code limits} — e.g. {@code POST /api/orders}
+ * (per-minute + per-hour) and {@code POST /api/auth/register} (per-hour + per-day). The bucket
+ * enforces every limit simultaneously, so the most restrictive one applies.
  *
  * <p>Intentionally limited in scope: it raises the bar against casual abuse and runaway
  * double-submits, NOT a determined attacker rotating IPs/headers.
@@ -34,24 +36,30 @@ import java.util.concurrent.TimeUnit;
  * instance). Swap in an expiring cache (e.g. Caffeine {@code expireAfterAccess}) if that
  * ever becomes a concern.
  *
- * <p>Registered only for {@code /api/orders} (see {@link WebConfig}); {@code preHandle}
- * additionally skips non-POST requests, so CORS preflight (OPTIONS) and any future GETs on
- * that path are naturally excluded. {@code /health} and authenticated endpoints are untouched.
+ * <p>{@code preHandle} skips non-POST requests, so CORS preflight (OPTIONS) and any future GETs
+ * on a protected path are naturally excluded. {@code /health} and authenticated endpoints are
+ * untouched.
  */
 @Slf4j
-public class OrderRateLimitInterceptor implements HandlerInterceptor {
+public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final ObjectMapper objectMapper;
     private final boolean enabled;
-    private final int perMinute;
-    private final int perHour;
+    private final List<Bandwidth> limits;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    public OrderRateLimitInterceptor(ObjectMapper objectMapper, boolean enabled, int perMinute, int perHour) {
+    public RateLimitInterceptor(ObjectMapper objectMapper, boolean enabled, List<Bandwidth> limits) {
         this.objectMapper = objectMapper;
         this.enabled = enabled;
-        this.perMinute = perMinute;
-        this.perHour = perHour;
+        this.limits = List.copyOf(limits);
+    }
+
+    /** Builds a greedy-refill bandwidth of {@code capacity} tokens per {@code window}. */
+    public static Bandwidth limit(int capacity, Duration window) {
+        return Bandwidth.builder()
+                .capacity(capacity)
+                .refillGreedy(capacity, window)
+                .build();
     }
 
     @Override
@@ -60,7 +68,7 @@ public class OrderRateLimitInterceptor implements HandlerInterceptor {
         if (!enabled) {
             return true;
         }
-        // Only rate-limit the actual order creation; non-POST (CORS preflight, future GETs) passes through.
+        // Only rate-limit the write itself; non-POST (CORS preflight, future GETs) passes through.
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
@@ -76,20 +84,11 @@ public class OrderRateLimitInterceptor implements HandlerInterceptor {
         return false;
     }
 
-    /** A fresh bucket enforcing both limits simultaneously (the most restrictive applies). */
+    /** A fresh bucket enforcing every configured limit simultaneously (the most restrictive applies). */
     private Bucket newBucket() {
-        Bandwidth perMin = Bandwidth.builder()
-                .capacity(perMinute)
-                .refillGreedy(perMinute, Duration.ofMinutes(1))
-                .build();
-        Bandwidth perHr = Bandwidth.builder()
-                .capacity(perHour)
-                .refillGreedy(perHour, Duration.ofHours(1))
-                .build();
-        return Bucket.builder()
-                .addLimit(perMin)
-                .addLimit(perHr)
-                .build();
+        var builder = Bucket.builder();
+        limits.forEach(builder::addLimit);
+        return builder.build();
     }
 
     /**
