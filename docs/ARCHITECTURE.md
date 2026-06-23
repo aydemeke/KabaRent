@@ -3,7 +3,7 @@
 # KabaRent — System Architecture
 
 ## Overview
-KabaRent is an event equipment rental management system. The core rental product is a **Kaba** — a costume/outfit set rented for events. Customers browse inventory and place orders for specific date ranges. Admins manage inventory, approve orders, and record payments. The API is secured with **stateless JWT** (Spring Security 6) and is **fail-closed**: a public catalog + guest checkout, a `ROLE_CUSTOMER` self-service area (`/api/my/**`), and `ROLE_ADMIN` management endpoints. Customers are identified by **phone number** (login by phone + password); the admin logs in by email.
+KabaRent is an event equipment rental management system. The core rental product is a **Kaba** — a costume/outfit set rented for events. Customers browse inventory and place orders for specific date ranges. Admins manage inventory, approve orders, and record payments. The API is secured with **stateless JWT** (Spring Security 6) and is **fail-closed**: a public catalog (browse/availability), a `ROLE_CUSTOMER` tier for placing and viewing orders (`POST /api/orders` + `/api/my/**`), and `ROLE_ADMIN` management endpoints. Ordering requires an authenticated `ROLE_CUSTOMER` (guest checkout has been removed); the order's customer is taken from the JWT principal, not the request body. Customers are identified by **phone number** (login by phone + password); the admin logs in by email.
 
 ---
 
@@ -132,7 +132,7 @@ KabaRent/
 | full_name     | VARCHAR(150) | NOT NULL                                      |
 | phone         | VARCHAR(20)  | **NOT NULL, UNIQUE** — login identity, canonical E.164 |
 | email         | VARCHAR(150) | **UNIQUE when present, nullable** (optional)  |
-| password_hash | VARCHAR(100) | nullable — BCrypt; null for guests (cannot log in) |
+| password_hash | VARCHAR(100) | nullable — BCrypt; null for customers without a login (e.g. admin-created rows; cannot authenticate until they register) |
 | role          | VARCHAR(20)  | `CUSTOMER` \| `ADMIN` (default `CUSTOMER`)    |
 | notes         | TEXT         |                                              |
 | created_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()                       |
@@ -200,6 +200,18 @@ KabaRent/
 
 ---
 
+### Table: `idempotency_records`
+| Column          | Type        | Constraints                          |
+|-----------------|-------------|--------------------------------------|
+| id              | BIGSERIAL   | PRIMARY KEY                          |
+| idempotency_key | VARCHAR(64) | **NOT NULL, UNIQUE**                 |
+| order_id        | BIGINT      | NOT NULL — the order this key created |
+| created_at      | TIMESTAMP   | NOT NULL                             |
+
+> Backs idempotent order creation: maps a client-supplied `Idempotency-Key` → the order it created. The `UNIQUE` constraint is what makes retries race-safe (see [§5 Order Idempotency](#order-idempotency)).
+
+---
+
 ### Relationships
 ```
 customers ──< orders ──< order_items >── kabas
@@ -234,8 +246,8 @@ customers ──< orders ──< order_items >── kabas
 #### Auth — `/api/auth`
 | Method | Path                 | Access  | Description                                                              |
 |--------|----------------------|---------|-------------------------------------------------------------------------|
-| POST   | `/api/auth/register` | Public  | Register (phone + password); returns a JWT. Upgrades an existing guest (same phone) in place; 409 if the phone already has an account. |
-| POST   | `/api/auth/login`    | Public  | `{ identifier, password }` → JWT. `identifier` = phone (customer) or email (admin); server sniffs `@`. |
+| POST   | `/api/auth/register` | Public  | Register (phone + password); returns a JWT. Upgrades a password-less row with the same phone in place (linking its past orders); 409 if the phone already has an account. **Rate-limited** (see [§5](#rate-limiting)). |
+| POST   | `/api/auth/login`    | Public  | `{ identifier, password }` → JWT. `identifier` = phone (customer) or email (admin); server sniffs `@`. **Not rate-limited yet** (backlog). |
 
 #### Health — `/health`
 | Method | Path      | Access | Description                                                  |
@@ -273,7 +285,7 @@ The `customerId` is always derived from the JWT, never the request.
 #### Orders — `/api/orders`
 | Method | Path                                | Access | Description                                          |
 |--------|-------------------------------------|--------|------------------------------------------------------|
-| POST   | `/api/orders`                       | Public | Place an order (guest checkout — find-or-create by phone) |
+| POST   | `/api/orders`                       | Customer | Place an order — attached to the authenticated `ROLE_CUSTOMER` from the JWT (no customer details in the body). Accepts an optional `Idempotency-Key` header and is rate-limited (see [§5](#order-idempotency)). |
 | GET    | `/api/orders`                       | Admin  | List all orders (filter by status)                   |
 | GET    | `/api/orders/{id}`                  | Admin  | Get single order detail (**not public** — sequential ids) |
 | GET    | `/api/orders/customer/{customerId}` | Admin  | List orders for a customer                           |
@@ -293,7 +305,7 @@ The `customerId` is always derived from the JWT, never the request.
 
 | Service               | Responsibilities                                                             |
 |-----------------------|------------------------------------------------------------------------------|
-| `AuthService`         | Register/login; guest→account upgrade-in-place (by phone); issues JWTs        |
+| `AuthService`         | Register/login; upgrade-in-place of a password-less row → account (by phone on register); issues JWTs |
 | `PhoneNumberService`  | Normalize/validate phone to canonical E.164 (libphonenumber, region IL) — single point of truth |
 | `KabaService`         | CRUD for Kabas, search/filter by category and size                          |
 | `CustomerService`     | Find-or-create customers by phone; admin CRUD                               |
@@ -310,8 +322,8 @@ The `customerId` is always derived from the JWT, never the request.
 | Route                              | Page Component       | Access | Description                                  |
 |------------------------------------|----------------------|--------|----------------------------------------------|
 | `/`                                | `BrowsePage`         | Public | Landing: search by date, availability grid   |
-| `/order/new`                       | `NewOrderPage`       | Public | Multi-step booking (reads query params)      |
-| `/order/:id`                       | `OrderStatusPage`    | Public | Post-checkout status (redirects to `/register` on a cold visit) |
+| `/order/new`                       | `NewOrderPage`       | Customer | Multi-step booking (reads query params); **wrapped in `RequireCustomer`** — logged-out visitors are redirected to `/login` (path+query preserved) |
+| `/order/:id`                       | `OrderStatusPage`    | Customer | Post-checkout status; **wrapped in `RequireCustomer`** |
 | `/login`, `/register`              | `LoginPage`/`RegisterPage` | Public | Customer auth (Hebrew RTL); login by phone |
 | `/customer/orders`, `/customer/orders/:id` | "My Orders"  | Customer | Own orders + balances (wrapped in `RequireCustomer`) |
 | `/about`, `/how-it-works`, `/faq`, `/contact`, `/rental-terms`, `/returns`, `/privacy` | content pages | Public | Footer-linked info pages (`ContentLayout`) |
@@ -339,14 +351,38 @@ All HTTP calls live in per-resource modules under `src/api/` (`auth.js`, `kabas.
 
 - **Identity is phone-based.** Customers log in with **phone + password**. Phone is the canonical **E.164** identity (`PhoneNumberService`, libphonenumber, region IL; `customers.phone` NOT NULL + UNIQUE). Email is optional (nullable, unique-when-present; blanks coerced to NULL).
 - **Admin logs in with email + password**, seeded on startup by `DataInitializer` from env (`ADMIN_EMAIL` / `ADMIN_PASSWORD`) with a placeholder phone `"-"`.
-- **Single login endpoint** (`POST /api/auth/login`, body `{ identifier, password }`). `CustomerUserDetailsService` sniffs the identifier: contains `@` → look up by email (admin); otherwise normalize to E.164 → look up by phone (customer). Guests (null `passwordHash`) cannot authenticate.
-- **Guest checkout & upgrade-in-place.** `POST /api/orders` find-or-creates the customer **by phone** (`CustomerService.findOrCreateByPhone`). Registering with that phone **upgrades the same row** (sets `passwordHash`, `role=CUSTOMER`), so the guest's past orders stay linked. Re-registering a phone that already has a password → 409 (`PhoneAlreadyRegisteredException`).
+- **Single login endpoint** (`POST /api/auth/login`, body `{ identifier, password }`). `CustomerUserDetailsService` sniffs the identifier: contains `@` → look up by email (admin); otherwise normalize to E.164 → look up by phone (customer). A row with a null `passwordHash` cannot authenticate.
+- **Upgrade-in-place.** A **password-less** `Customer` row (e.g. one an admin created via `POST /api/customers`, which find-or-creates by phone) is **upgraded in place** when someone registers with that phone (sets `passwordHash`, `role=CUSTOMER`), so any past orders on that row stay linked. Re-registering a phone that already has a password → 409 (`PhoneAlreadyRegisteredException`). Ordering no longer creates customers — `POST /api/orders` requires `ROLE_CUSTOMER` and takes the customer from the JWT (guest checkout removed).
 - **Three authorization tiers** (`SecurityConfig`):
-  - **Public:** `OPTIONS /**`, `GET /health`, `/api/auth/**`, `GET /api/kabas/**`, `POST /api/orders`.
-  - **`ROLE_CUSTOMER`:** `/api/my/**` only.
+  - **Public:** `OPTIONS /**`, `GET /health`, `/api/auth/**`, `GET /api/kabas/**`.
+  - **`ROLE_CUSTOMER`:** `POST /api/orders` (place an order) and `/api/my/**`.
   - **`ROLE_ADMIN`:** Kaba mutations, `/api/orders/**`, `/api/customers/**`, `/api/payments/**`.
 - **Ownership:** `customerId` is always taken from the JWT principal (`CustomerPrincipal`), never the request; every `/api/my/**` access is ownership-checked (mismatch → 404).
 - **Phone validation:** `@ValidPhone` (`PhoneValidator` → `PhoneNumberService`) on register/customer DTOs; `InvalidPhoneNumberException` → 400, `PhoneAlreadyRegisteredException` → 409.
+
+---
+
+### Order Idempotency
+
+`POST /api/orders` accepts an optional client-supplied **`Idempotency-Key`** header. An `idempotency_records` row (DB-`UNIQUE` on the key) maps key → the created order id:
+
+- A repeated request with the same key returns the **original** order instead of creating a duplicate.
+- Concurrency is race-safe via the unique constraint: on a conflicting insert the inner transaction rolls back, then re-reads and returns the winner's order — no orphan order is left behind.
+- A key longer than **64 characters** → 400.
+- The frontend sends a per-checkout-attempt UUID (`crypto.randomUUID()`), stable across retries and rotated only after a successful submit.
+
+---
+
+### Rate Limiting
+
+Best-effort, in-memory, **per-instance** throttling via **bucket4j** (token buckets), applied as a shared `RateLimitInterceptor` registered **per path** in `WebConfig`. The client key is resolved as `CF-Connecting-IP` → leftmost `X-Forwarded-For` → `getRemoteAddr()` (Render sits behind Cloudflare). It is explicitly **best-effort** — IP-spoofable and not shared across instances — so it raises the bar against casual abuse, not a determined attacker.
+
+| Endpoint | Limits (per client) |
+|----------|---------------------|
+| `POST /api/orders` | 10 / minute and 100 / hour |
+| `POST /api/auth/register` | 3 / hour and 10 / day (stricter — the main public abuse surface once guest ordering was removed) |
+
+On exceeding a limit: **HTTP 429** with a `Retry-After` header and the standard `{ timestamp, status, error }` JSON body. All limits are configurable via `app.rate-limit.*` (env-overridable); `app.rate-limit.enabled` toggles the whole feature. **`POST /api/auth/login` is not rate-limited yet** (backlog).
 
 ---
 
@@ -478,7 +514,7 @@ There is no migration tool (Flyway/Liquibase); schema is managed by Hibernate `d
 ## Verification Steps
 - `GET /api/kabas` → returns list of Kabas (public)
 - `GET /api/kabas/available?eventDate=2026-06-01&returnDate=2026-06-03` → returns available Kabas
-- `POST /api/orders` → creates order (guest checkout find-or-creates by phone); verify price matches calculation
+- `POST /api/orders` with a customer JWT → creates an order attached to that customer (no customer block in the body); verify price matches calculation. Without a token → 401; replaying the same `Idempotency-Key` returns the original order.
 - Attempt to book same Kaba on overlapping dates beyond `quantity` → expect HTTP 409 Conflict
 - `POST /api/auth/login` with phone + password → returns a JWT; admin logs in with email + password
 - `PUT /api/orders/{id}/status` (Admin) → status transitions are enforced (e.g. PENDING → CONFIRMED)

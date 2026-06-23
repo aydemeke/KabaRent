@@ -238,7 +238,7 @@ The `customerId` is always derived from the JWT — never from the request.
 
 | Method | Path | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/orders` | Customer | Place an order. Requires an authenticated `ROLE_CUSTOMER`; the order is attached to the customer from the JWT (no customer details in the body). Guest checkout is disabled. |
+| `POST` | `/api/orders` | Customer | Place an order. Requires an authenticated `ROLE_CUSTOMER`; the order is attached to the customer from the JWT (no customer details in the body). Guest checkout is disabled. Accepts an optional `Idempotency-Key` header (dedupes retries) and is rate-limited — see [Rate limiting & idempotency](#rate-limiting--idempotency). |
 | `GET` | `/api/orders?status=` | Admin | List all orders (optional status filter) |
 | `GET` | `/api/orders/{id}` | Admin | Get order details (with items) — **not public** (sequential ids); customers use `/api/my/orders/{id}` |
 | `GET` | `/api/orders/customer/{customerId}` | Admin | List a customer's orders |
@@ -252,6 +252,14 @@ The `customerId` is always derived from the JWT — never from the request.
 | `GET` | `/api/payments/order/{orderId}` | Admin | Payments for a specific order |
 | `GET` | `/api/payments/order/{orderId}/balance` | Admin | Balance summary `{ totalPrice, totalPaid, remainingBalance, isFullyPaid }` |
 | `POST` | `/api/payments` | Admin | Record a payment |
+
+### Rate limiting & idempotency
+
+- **Rate limiting** (best-effort, in-memory, per-instance via bucket4j): the public, DB-writing POST endpoints are throttled per client. The client key is `CF-Connecting-IP` → leftmost `X-Forwarded-For` → remote address (Render runs behind Cloudflare, so this is best-effort and IP-spoofable). Over the limit → **429** with a `Retry-After` header and the standard `{ timestamp, status, error }` JSON.
+  - `POST /api/orders` — **10 / minute** and **100 / hour**
+  - `POST /api/auth/register` — **3 / hour** and **10 / day** (stricter — the main public abuse surface after guest ordering was disabled)
+  - Limits are configurable via `app.rate-limit.*` (env-overridable). `POST /api/auth/login` is **not** rate-limited yet (see [Known Limitations](#known-limitations)).
+- **Idempotent order creation:** `POST /api/orders` accepts an optional **`Idempotency-Key`** header. A DB-unique `idempotency_records` table maps key → order id, so replaying the same key returns the original order instead of creating a duplicate — race-safe via the unique constraint (on conflict, re-read and return the winner; no orphan order). A key longer than 64 chars → 400. The frontend sends a per-checkout-attempt `crypto.randomUUID()`, stable across retries and rotated only after a successful submit.
 
 ---
 
