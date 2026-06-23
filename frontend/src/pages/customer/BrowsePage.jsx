@@ -242,7 +242,7 @@ export default function BrowsePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span style={{ fontSize: '13px', fontWeight: 500, color: returnDate ? '#1a1c1c' : '#6b726b', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
-                {returnDate ? returnDate.split('-').reverse().join('/') : 'יום האירוע'}
+                {returnDate ? returnDate.split('-').reverse().join('/') : 'בחר (לא חובה)'}
               </span>
               <input
                 id="search-return-date"
