@@ -14,7 +14,7 @@ export default function Navbar() {
   function active(path) {
     const match = path === '/' ? pathname === '/' : pathname.startsWith(path)
     return match
-      ? 'text-on-surface border-b-2 border-amber-400 pb-0.5'
+      ? 'text-on-surface border-b-2 border-accent-gold pb-0.5'
       : 'text-on-surface-variant hover:text-on-surface transition-colors'
   }
 
@@ -23,18 +23,22 @@ export default function Navbar() {
     navigate(to, { replace: true })
   }
 
-  const linkBtn = 'text-on-surface-variant hover:text-on-surface transition-colors bg-transparent border-none cursor-pointer font-inter font-medium text-sm p-0'
+  const linkBtn = 'transition-colors bg-transparent border-none cursor-pointer font-inter font-medium text-sm p-0'
+  const greenLink = { color: '#1C7C49' }
+  const greenIn = e => (e.currentTarget.style.color = '#17663C')
+  const greenOut = e => (e.currentTarget.style.color = '#1C7C49')
 
   // "New order" entry point. Logged-in customers go straight to the prefilled form;
   // guests hit the same checkout gate as the card flow, with redirect target /order/new
   // (no kabaId — this is a generic "start an order" entry, so no selection to preserve).
   const newOrderLink = isLoggedIn ? (
-    <Link to="/order/new" className={active('/order/new')} onClick={() => setMenuOpen(false)}>הזמנה חדשה</Link>
+    <Link to="/order/new" className="ds-btn-ghost w-full sm:w-auto" style={{ borderRadius: '10px' }} onClick={() => setMenuOpen(false)}>הזמנה חדשה</Link>
   ) : (
     <button
       type="button"
       onClick={() => { setMenuOpen(false); setGateOpen(true) }}
-      className={`${active('/order/new')} bg-transparent border-none cursor-pointer font-inter font-medium text-sm p-0`}
+      className="ds-btn-ghost w-full sm:w-auto"
+      style={{ borderRadius: '10px' }}
     >
       הזמנה חדשה
     </button>
@@ -47,7 +51,7 @@ export default function Navbar() {
       <Link to="/admin/orders"     className={active('/admin/orders')}>Orders</Link>
       <Link to="/admin/customers"  className={active('/admin/customers')}>Customers</Link>
       <Link to="/admin/payments"   className={active('/admin/payments')}>Payments</Link>
-      <button type="button" onClick={() => handleLogout('/')} className={`${linkBtn} sm:ml-2`}>Logout</button>
+      <button type="button" onClick={() => handleLogout('/')} className={`${linkBtn} sm:ml-2`} style={greenLink} onMouseEnter={greenIn} onMouseLeave={greenOut}>Logout</button>
       <Link
         to="/"
         className="text-xs text-on-surface-variant hover:text-on-surface transition-colors opacity-60 hover:opacity-100 sm:ml-2"
@@ -62,12 +66,12 @@ export default function Navbar() {
         <>
           {/* Customer-only link; an admin viewing a customer page has no "my orders". */}
           {!isAdminUser && <Link to="/customer/orders" className={active('/customer/orders')}>ההזמנות שלי</Link>}
-          <button type="button" onClick={() => handleLogout('/')} className={linkBtn}>התנתקות</button>
+          <button type="button" onClick={() => handleLogout('/')} className={linkBtn} style={greenLink} onMouseEnter={greenIn} onMouseLeave={greenOut}>התנתקות</button>
         </>
       ) : (
         <>
-          <Link to="/login" className={active('/login')}>כניסה</Link>
-          <Link to="/register" className={active('/register')}>הרשמה</Link>
+          <Link to="/login" className={active('/login')} style={greenLink} onMouseEnter={greenIn} onMouseLeave={greenOut}>כניסה</Link>
+          <Link to="/register" className={active('/register')} style={greenLink} onMouseEnter={greenIn} onMouseLeave={greenOut}>הרשמה</Link>
         </>
       )}
     </>
@@ -77,11 +81,11 @@ export default function Navbar() {
     <nav
       className="sticky top-0 z-40"
       style={{
-        background: 'rgba(249,249,248,0.85)',
+        background: 'rgba(253,251,245,0.85)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        boxShadow: '0px 12px 32px rgba(26,28,28,0.06)',
-        borderBottom: '1px solid #e8e8e7',
+        boxShadow: '0px 12px 32px rgba(28,124,73,0.05)',
+        borderBottom: '1px solid #ECE4CB',
       }}
     >
       <div className="flex items-center justify-between px-8 py-3">
@@ -93,8 +97,8 @@ export default function Navbar() {
         {/* Hamburger — left side (mobile only) */}
         <button
           type="button"
-          className="sm:hidden flex items-center justify-center"
-          style={{ width: '44px', height: '44px', background: 'none', border: 'none', cursor: 'pointer', color: '#1a1c1c' }}
+          className="sm:hidden flex items-center justify-center text-on-surface"
+          style={{ width: '44px', height: '44px', background: 'none', border: 'none', cursor: 'pointer' }}
           aria-label="תפריט"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(o => !o)}
@@ -113,7 +117,7 @@ export default function Navbar() {
             src="/kaba-rent-logo.png"
             alt="ካባ"
             className="h-12 sm:h-14 w-auto"
-            style={{ objectFit: 'contain', mixBlendMode: 'multiply' }}
+            style={{ objectFit: 'contain' }}
           />
         </Link>
       </div>
@@ -122,7 +126,7 @@ export default function Navbar() {
       {menuOpen && (
         <div
           className="sm:hidden flex flex-col gap-4 px-8 py-4 text-sm font-inter font-medium tracking-wide"
-          style={{ borderTop: '1px solid #e8e8e7', background: 'rgba(249,249,248,0.95)' }}
+          style={{ borderTop: '1px solid #ECE4CB', background: 'rgba(253,251,245,0.97)' }}
           onClick={() => setMenuOpen(false)}
         >
           {navLinks}

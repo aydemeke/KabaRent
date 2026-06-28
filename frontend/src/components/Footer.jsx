@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useState } from 'react'
 
 const FOOTER_LINK_STYLE = {
-  color: 'rgba(1,45,29,0.70)',
+  color: '#1C7C49',
   fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
   textDecoration: 'none',
@@ -14,8 +14,8 @@ const FOOTER_LINK_STYLE = {
 const FOOTER_LINK_CLASS = 'flex items-center min-h-[44px] sm:block sm:min-h-0 sm:mb-2.5'
 
 function FooterLink({ to, children }) {
-  const hoverIn = e => (e.currentTarget.style.color = 'rgba(1,45,29,1)')
-  const hoverOut = e => (e.currentTarget.style.color = 'rgba(1,45,29,0.70)')
+  const hoverIn = e => (e.currentTarget.style.color = '#17663C')
+  const hoverOut = e => (e.currentTarget.style.color = '#1C7C49')
 
   // Links without a route target (not yet built) stay as inert placeholders.
   if (!to) {
@@ -35,14 +35,14 @@ const SECTION_HEADING = {
   fontFamily: "'Plus Jakarta Sans', sans-serif",
   fontSize: '13px',
   fontWeight: 700,
-  color: '#012d1d',
+  color: '#1C1B16',
   letterSpacing: '0.05em',
 }
 
 const CONTACT_LINE = {
   fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
-  color: 'rgba(1,45,29,0.70)',
+  color: '#5A5443',
   marginBottom: '10px',
 }
 
@@ -62,7 +62,7 @@ function AccordionSection({ id, title, open, onToggle, children }) {
         <span
           className="sm:hidden"
           aria-hidden="true"
-          style={{ color: '#012d1d', fontSize: '14px', transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          style={{ color: '#1C1B16', fontSize: '14px', transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
         >
           ▾
         </span>
@@ -111,9 +111,9 @@ function SocialLinks() {
       href="#"
       aria-label={s.label}
       className="inline-flex items-center justify-center w-11 h-11 sm:w-auto sm:h-auto"
-      style={{ color: 'rgba(1,45,29,0.60)', transition: 'color 0.2s ease' }}
-      onMouseEnter={e => (e.currentTarget.style.color = '#012d1d')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.60)')}
+      style={{ color: '#1C7C49', transition: 'color 0.2s ease' }}
+      onMouseEnter={e => (e.currentTarget.style.color = '#17663C')}
+      onMouseLeave={e => (e.currentTarget.style.color = '#1C7C49')}
     >
       {s.svg}
     </a>
@@ -125,9 +125,9 @@ function AdminLink() {
     <Link
       to="/admin"
       className="inline-flex items-center min-h-[44px] sm:min-h-0"
-      style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(1,45,29,0.65)', textDecoration: 'none' }}
-      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.9)')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(1,45,29,0.65)')}
+      style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#1C7C49', textDecoration: 'none' }}
+      onMouseEnter={e => (e.currentTarget.style.color = '#17663C')}
+      onMouseLeave={e => (e.currentTarget.style.color = '#1C7C49')}
     >
       ניהול
     </Link>
@@ -136,7 +136,7 @@ function AdminLink() {
 
 function Copyright() {
   return (
-    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(1,45,29,0.70)' }}>
+    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#5A5443' }}>
       © 2026 ካባ — כל הזכויות שמורות
     </p>
   )
@@ -150,11 +150,11 @@ export default function Footer() {
     <footer
       dir="rtl"
       style={{
-        background: '#f3f4f3',
-        borderTop: '1px solid rgba(193,200,194,0.3)',
-        padding: '48px 32px 0',
+        background: '#F8F3E7',
+        borderTop: '1px solid #ECE4CB',
       }}
     >
+      <div style={{ padding: '48px 32px 0' }}>
       <div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"
         style={{ maxWidth: '1152px', margin: '0 auto' }}
@@ -168,14 +168,13 @@ export default function Footer() {
               height: '48px',
               width: 'auto',
               objectFit: 'contain',
-              mixBlendMode: 'multiply',
               marginBottom: '16px',
             }}
           />
-          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#012d1d', marginBottom: '6px' }}>
+          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#1C1B16', marginBottom: '6px' }}>
             השכרת הלבשה מסורתית לאירועים
           </p>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(1,45,29,0.60)' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#5A5443' }}>
             מורשת אתיופית, אירוע בלתי נשכח
           </p>
         </div>
@@ -201,7 +200,7 @@ export default function Footer() {
           <p style={CONTACT_LINE}>📞 050-1234567</p>
           <p style={CONTACT_LINE}>✉️ info@kaba-rent.co.il</p>
           <p style={CONTACT_LINE}>📍 תל אביב, ישראל</p>
-          <p style={{ ...CONTACT_LINE, fontSize: '13px', color: 'rgba(1,45,29,0.70)' }}>
+          <p style={{ ...CONTACT_LINE, fontSize: '13px', color: '#5A5443' }}>
             שעות: א׳-ה׳ 09:00-19:00
           </p>
         </AccordionSection>
@@ -212,7 +211,7 @@ export default function Footer() {
         style={{
           maxWidth: '1152px',
           margin: '32px auto 0',
-          borderTop: '1px solid rgba(193,200,194,0.4)',
+          borderTop: '1px solid #ECE4CB',
           paddingTop: '24px',
           paddingBottom: '24px',
         }}
@@ -234,6 +233,7 @@ export default function Footer() {
             <AdminLink />
           </div>
         </div>
+      </div>
       </div>
     </footer>
   )

@@ -3,24 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --color-primary:                #012d1d;
-  --color-secondary:              #705d00;
-  --color-tertiary:               #560000;
-  --color-secondary-container:    #fcd400;
-  --color-surface:                #f9f9f8;
-  --color-surface-container-low:  #f3f4f3;
-  --color-surface-container:      #eeeeed;
-  --color-surface-container-high: #e8e8e7;
-  --color-surface-container-highest: #e2e2e2;
-  --color-surface-container-lowest:  #ffffff;
-  --color-on-surface:             #1a1c1c;
-  --color-on-surface-variant:     #414844;
-  --color-outline-variant:        #c1c8c2;
+  --color-primary:                #1C7C49;
+  --color-secondary:              #FFC233;
+  --color-tertiary:               #E24A3B;
+  --color-secondary-container:    #FFC233;
+  --color-accent-gold:            #FFC233;
+  --color-accent-red:             #E24A3B;
+  --color-accent-red-text:        #B5392D;
+  --color-surface:                #FDFBF5;
+  --color-surface-container-low:  #F8F3E7;
+  --color-surface-container:      #F3ECD9;
+  --color-surface-container-high: #ECE4CB;
+  --color-surface-container-highest: #E4DABB;
+  --color-surface-container-lowest:  #FFFFFF;
+  --color-on-surface:             #1C1B16;
+  --color-on-surface-variant:     #5A5443;
+  --color-outline-variant:        #ECE4CB;
 }
 
 html {
   font-family: 'Inter', sans-serif;
-  color: #1a1c1c;
+  color: #1C1B16;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -42,7 +45,7 @@ body {
   inset: 0;
   z-index: -1;
   background-image:
-    linear-gradient(rgba(249, 249, 248, 0.85), rgba(249, 249, 248, 0.85)),
+    linear-gradient(rgba(253, 251, 245, 0.85), rgba(253, 251, 245, 0.85)),
     url('/kaba-rent-bg-1.png');
   background-size: cover;
   background-position: center top;
@@ -54,20 +57,20 @@ body {
    on the wrapper instead when the input inside receives keyboard focus. */
 .kr-datefield:focus-within,
 .kr-dateinput:focus-within {
-  outline: 2px solid #012d1d;
+  outline: 2px solid #1C7C49;
   outline-offset: 2px;
   border-radius: 8px;
 }
 
 /* Keyboard focus ring for the clickable product cards on BrowsePage. */
 .kr-card:focus-visible {
-  outline: 2px solid #012d1d;
+  outline: 2px solid #1C7C49;
   outline-offset: 3px;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  color: #1a1c1c;
+  color: #1C1B16;
 }
 
 button, input, select, textarea, label, a {
@@ -78,40 +81,45 @@ button, input, select, textarea, label, a {
   /* Input fields */
   .ds-input {
     width: 100%;
-    background-color: #f3f4f3;
+    background-color: #FFFFFF;
     border-radius: 0.75rem;
     padding: 0.625rem 1rem;
     font-size: 0.875rem;
-    color: #1a1c1c;
-    border: 1px solid transparent;
+    color: #1C1B16;
+    border: 1px solid #ECE4CB;
     transition: all 0.15s;
+  }
+  .ds-input::placeholder {
+    color: #5A5443;
   }
   .ds-input:focus {
     outline: none;
     background-color: #ffffff;
-    border-color: rgba(1, 45, 29, 0.30);
+    border-color: #1C7C49;
+    box-shadow: 0 0 0 3px rgba(28, 124, 73, 0.15);
   }
 
   /* Select dropdowns */
   .ds-select {
     width: 100%;
-    background-color: #f3f4f3;
+    background-color: #FFFFFF;
     border-radius: 0.75rem;
     padding: 0.625rem 1rem;
     font-size: 0.875rem;
-    color: #1a1c1c;
-    border: 1px solid transparent;
+    color: #1C1B16;
+    border: 1px solid #ECE4CB;
     transition: all 0.15s;
     appearance: none;
   }
   .ds-select:focus {
     outline: none;
     background-color: #ffffff;
-    border-color: rgba(1, 45, 29, 0.30);
+    border-color: #1C7C49;
+    box-shadow: 0 0 0 3px rgba(28, 124, 73, 0.15);
   }
   .ds-select:disabled {
-    background-color: #e2e2e2;
-    color: #414844;
+    background-color: #E4DABB;
+    color: #5A5443;
     cursor: not-allowed;
   }
 
@@ -123,19 +131,25 @@ button, input, select, textarea, label, a {
     color: #ffffff;
     font-family: 'Inter', sans-serif;
     font-weight: 600;
-    border-radius: 0.75rem;
+    border-radius: 0.625rem;
     padding: 0.625rem 1.5rem;
     font-size: 0.875rem;
-    background: linear-gradient(135deg, #012d1d, #1b4332);
+    background-color: #1C7C49;
     border: none;
     cursor: pointer;
-    transition: transform 0.15s, opacity 0.15s;
+    box-shadow: 0 2px 16px rgba(28, 124, 73, 0.06);
+    transition: background-color 0.15s, box-shadow 0.15s, opacity 0.15s;
   }
   .ds-btn-primary:hover:not(:disabled) {
-    transform: scale(0.95);
+    background-color: #197042;
+    box-shadow: 0 6px 24px rgba(28, 124, 73, 0.18);
   }
   .ds-btn-primary:active:not(:disabled) {
-    transform: scale(0.90);
+    background-color: #17663C;
+  }
+  .ds-btn-primary:focus-visible {
+    outline: 2px solid #1C7C49;
+    outline-offset: 2px;
   }
   .ds-btn-primary:disabled {
     opacity: 0.50;
@@ -144,36 +158,47 @@ button, input, select, textarea, label, a {
 
   /* Ghost button */
   .ds-btn-ghost {
-    color: #012d1d;
+    color: #1C7C49;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 0.875rem;
     border-radius: 999px;
     padding: 0.5rem 1.25rem;
-    border: 1px solid rgba(193, 200, 194, 0.4);
+    border: 1px solid #ECE4CB;
     background: transparent;
     cursor: pointer;
     transition: all 0.15s;
   }
   .ds-btn-ghost:hover {
-    background-color: #f3f4f3;
+    background-color: rgba(28, 124, 73, 0.06);
+    border-color: #1C7C49;
+  }
+  .ds-btn-ghost:focus-visible {
+    outline: 2px solid #1C7C49;
+    outline-offset: 2px;
   }
 
   /* Tertiary link button */
   .ds-btn-text {
-    color: #012d1d;
+    color: #1C7C49;
     font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
     font-weight: 500;
     background: transparent;
     border: none;
     cursor: pointer;
-    text-decoration-color: #fcd400;
+    text-decoration-color: #FFC233;
   }
   .ds-btn-text:hover {
     text-decoration: underline;
-    text-decoration-color: #fcd400;
+    text-decoration-color: #FFC233;
     text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
+  }
+  .ds-btn-text:focus-visible {
+    outline: 2px solid #1C7C49;
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
   /* Admin panel wrapper */
@@ -181,7 +206,8 @@ button, input, select, textarea, label, a {
     background-color: #ffffff;
     border-radius: 1rem;
     overflow: hidden;
-    box-shadow: 0 2px 16px rgba(26, 28, 28, 0.06);
+    border: 1px solid #ECE4CB;
+    box-shadow: 0 2px 16px rgba(28, 124, 73, 0.06);
   }
 
   /* Table head cells */
@@ -191,10 +217,11 @@ button, input, select, textarea, label, a {
     font-size: 0.75rem;
     font-family: 'Inter', sans-serif;
     font-weight: 600;
-    color: #414844;
+    color: #1C1B16;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    background-color: #f3f4f3;
+    background-color: #F3ECD9;
+    border-bottom: 1px solid #ECE4CB;
   }
 
   /* Muted section label */
@@ -202,9 +229,22 @@ button, input, select, textarea, label, a {
     font-size: 0.75rem;
     font-family: 'Inter', sans-serif;
     font-weight: 600;
-    color: #414844;
+    color: #5A5443;
     text-transform: uppercase;
     letter-spacing: 0.06em;
+  }
+
+  /* Tibeb signature band — gold diamonds + red tick on leaf green.
+     The ONE bold motif; use sparingly (card top-accent, nav active
+     underline, footer top edge). Height via --tibeb-h (default 4px);
+     tile scales to height and repeats horizontally (RTL-safe, symmetric). */
+  .ds-tibeb-band {
+    height: var(--tibeb-h, 4px);
+    width: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='4' viewBox='0 0 8 4'%3E%3Crect width='8' height='4' fill='%231C7C49'/%3E%3Cpath d='M4 0 L5.6 2 L4 4 L2.4 2 Z' fill='%23FFC233'/%3E%3Cpath d='M0 1 L1 2 L0 3 Z' fill='%23E24A3B'/%3E%3Cpath d='M8 1 L7 2 L8 3 Z' fill='%23E24A3B'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+    background-position: center;
   }
 
   /* Touch targets: tappable controls are at least 44px tall on mobile
