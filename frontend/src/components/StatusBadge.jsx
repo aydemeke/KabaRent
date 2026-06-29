@@ -1,13 +1,13 @@
 const styles = {
-  PENDING:   { bg: 'rgba(205,160,0,0.12)',  color: '#705d00' },
-  CONFIRMED: { bg: 'rgba(1,45,80,0.10)',    color: '#013d6b' },
-  ACTIVE:    { bg: 'rgba(1,45,29,0.10)',    color: '#012d1d' },
-  COMPLETED: { bg: 'rgba(65,72,68,0.08)',   color: '#414844' },
-  CANCELLED: { bg: 'rgba(86,0,0,0.10)',     color: '#560000' },
+  PENDING:   { bg: 'rgba(255,194,51,0.15)',  color: '#8A6320' },
+  CONFIRMED: { bg: 'rgba(28,124,73,0.10)',   color: '#1C7C49' },
+  ACTIVE:    { bg: 'rgba(28,124,73,0.15)',   color: '#1C7C49' },
+  COMPLETED: { bg: 'rgba(90,84,67,0.10)',    color: '#5A5443' },
+  CANCELLED: { bg: 'rgba(226,74,59,0.10)',   color: '#B5392D' },
 }
 
 export default function StatusBadge({ status }) {
-  const s = styles[status] ?? { bg: 'rgba(65,72,68,0.08)', color: '#414844' }
+  const s = styles[status] ?? { bg: 'rgba(90,84,67,0.10)', color: '#5A5443' }
   return (
     <span
       className="inline-block px-2.5 py-0.5 rounded-full text-xs font-inter font-semibold"

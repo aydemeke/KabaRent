@@ -7,11 +7,11 @@ const STATUSES = ['', 'PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED'
 
 function nextActions(status) {
   switch (status) {
-    case 'PENDING':   return [{ label: 'Confirm',  next: 'CONFIRMED', color: '#012d1d' },
-                              { label: 'Cancel',   next: 'CANCELLED', color: '#560000' }]
-    case 'CONFIRMED': return [{ label: 'Activate', next: 'ACTIVE',    color: '#012d1d' },
-                              { label: 'Cancel',   next: 'CANCELLED', color: '#560000' }]
-    case 'ACTIVE':    return [{ label: 'Complete', next: 'COMPLETED', color: '#414844' }]
+    case 'PENDING':   return [{ label: 'Confirm',  next: 'CONFIRMED', color: '#1C7C49' },
+                              { label: 'Cancel',   next: 'CANCELLED', color: '#B5392D' }]
+    case 'CONFIRMED': return [{ label: 'Activate', next: 'ACTIVE',    color: '#1C7C49' },
+                              { label: 'Cancel',   next: 'CANCELLED', color: '#B5392D' }]
+    case 'ACTIVE':    return [{ label: 'Complete', next: 'COMPLETED', color: '#5A5443' }]
     default:          return []
   }
 }
@@ -62,7 +62,7 @@ export default function AdminOrdersPage() {
               <th>ID</th><th>Customer</th><th>Event date</th><th>Return date</th>
               <th>Items</th><th>Total</th><th>Status</th><th>Actions</th>
             </tr></thead>
-            <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
+            <tbody className="divide-y" style={{ borderColor: '#ECE4CB' }}>
               {orders.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center font-inter text-on-surface-variant py-12">No orders found.</td>

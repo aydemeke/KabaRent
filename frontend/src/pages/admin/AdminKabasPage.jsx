@@ -95,7 +95,7 @@ function ImagePickerField({ value, onChange }) {
               className={`rounded-xl overflow-hidden transition-all focus:outline-none ${
                 selected ? 'ring-2 ring-primary' : 'opacity-60 hover:opacity-100'
               }`}
-              style={{ border: selected ? '2px solid #012d1d' : '2px solid transparent' }}
+              style={{ border: selected ? '2px solid #1C7C49' : '2px solid transparent' }}
             >
               <img src={path} alt={img.label} className="w-full h-16 object-cover" />
               <p className="text-[10px] text-center py-0.5 font-inter text-on-surface-variant bg-surface-container-low">{img.label}</p>
@@ -166,7 +166,7 @@ export default function AdminKabasPage() {
             <th>Color</th><th>Category</th><th>Size</th>
             <th>Price/day</th><th>Qty</th><th>Status</th><th>Actions</th>
           </tr></thead>
-          <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
+          <tbody className="divide-y" style={{ borderColor: '#ECE4CB' }}>
             {kabas.map(k => {
               const swatch = COLOR_OPTIONS.find(o => o.label === k.name)
               return (
@@ -185,8 +185,8 @@ export default function AdminKabasPage() {
                     <span
                       className="inline-block px-2.5 py-0.5 rounded-full text-xs font-inter font-semibold"
                       style={k.active
-                        ? { background: 'rgba(1,45,29,0.10)', color: '#012d1d' }
-                        : { background: 'rgba(65,72,68,0.08)', color: '#414844' }
+                        ? { background: 'rgba(28,124,73,0.10)', color: '#1C7C49' }
+                        : { background: 'rgba(90,84,67,0.10)', color: '#5A5443' }
                       }
                     >
                       {k.active ? 'Active' : 'Inactive'}
@@ -198,7 +198,7 @@ export default function AdminKabasPage() {
                       <button
                         onClick={() => handleDeactivate(k.id)}
                         className="font-inter text-xs font-medium hover:underline"
-                        style={{ color: '#560000' }}
+                        style={{ color: '#B5392D' }}
                       >
                         Deactivate
                       </button>
@@ -258,7 +258,7 @@ export default function AdminKabasPage() {
 
             <ImagePickerField value={form.imageUrl} onChange={path => setForm(f => ({ ...f, imageUrl: path }))} />
 
-            {error && <p className="font-inter text-sm" style={{ color: '#560000' }}>{error}</p>}
+            {error && <p className="font-inter text-sm" style={{ color: '#B5392D' }}>{error}</p>}
 
             <div className="flex justify-end gap-3 pt-2">
               <button type="button" onClick={() => setModal(null)} className="ds-btn-text">Cancel</button>

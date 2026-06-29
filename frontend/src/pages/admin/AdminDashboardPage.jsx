@@ -8,8 +8,8 @@ import Spinner from '../../components/Spinner'
 function StatCard({ label, value, accent }) {
   return (
     <div
-      className="bg-white rounded-2xl p-6 flex flex-col gap-2"
-      style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)', borderLeft: `3px solid ${accent}` }}
+      className="bg-white rounded-2xl p-6 flex flex-col gap-2 shadow-ambient"
+      style={{ borderLeft: `3px solid ${accent}` }}
     >
       <p className="ds-label">{label}</p>
       <p className="font-jakarta font-black text-on-surface" style={{ fontSize: '2rem', lineHeight: 1 }}>{value}</p>
@@ -48,10 +48,10 @@ export default function AdminDashboardPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total orders"          value={orders.length}         accent="#c1c8c2" />
-        <StatCard label="Pending"               value={pending}               accent="#fcd400" />
-        <StatCard label="Active rentals"        value={active}                accent="#012d1d" />
-        <StatCard label="Revenue (completed)"   value={`₪${revenue.toFixed(0)}`} accent="#705d00" />
+        <StatCard label="Total orders"          value={orders.length}         accent="#ECE4CB" />
+        <StatCard label="Pending"               value={pending}               accent="#FFC233" />
+        <StatCard label="Active rentals"        value={active}                accent="#1C7C49" />
+        <StatCard label="Revenue (completed)"   value={`₪${revenue.toFixed(0)}`} accent="#FFC233" />
       </div>
 
       {/* Quick links */}
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
           <Link
             key={to} to={to}
             className="bg-white rounded-2xl px-4 py-3.5 font-inter text-sm font-semibold text-on-surface-variant text-center transition-all duration-150 hover:text-primary hover:bg-surface-container-low"
-            style={{ boxShadow: '0 2px 12px rgba(26,28,28,0.05)' }}
+            style={{ boxShadow: '0 2px 12px rgba(28,124,73,0.05)' }}
           >
             {label}
           </Link>
@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
 
       {/* Recent orders */}
       <div className="ds-panel">
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #ECE4CB' }}>
           <h2 className="font-jakarta font-semibold text-on-surface">Recent Orders</h2>
           <Link to="/admin/orders" className="font-inter text-sm text-primary font-medium hover:underline">View all →</Link>
         </div>
@@ -85,7 +85,7 @@ export default function AdminDashboardPage() {
             <thead><tr className="ds-table-head">
               <th>ID</th><th>Customer</th><th>Event date</th><th>Total</th><th>Status</th>
             </tr></thead>
-            <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
+            <tbody className="divide-y" style={{ borderColor: '#ECE4CB' }}>
               {recent.map(o => (
                 <tr key={o.id} className="hover:bg-surface-container-low transition-colors">
                   <td className="px-4 py-3 font-inter text-on-surface-variant text-xs">#{o.id}</td>
@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
 
       {/* Inventory summary */}
       <div className="ds-panel">
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #ECE4CB' }}>
           <h2 className="font-jakarta font-semibold text-on-surface">Inventory ({kabas.length} active Kabas)</h2>
           <Link to="/admin/kabas" className="font-inter text-sm text-primary font-medium hover:underline">Manage →</Link>
         </div>
@@ -111,7 +111,7 @@ export default function AdminDashboardPage() {
             <div
               key={k.id}
               className="flex justify-between items-center px-6 py-3.5 font-inter text-sm transition-colors hover:bg-surface-container-low"
-              style={i > 0 ? { borderTop: '1px solid rgba(193,200,194,0.20)' } : undefined}
+              style={i > 0 ? { borderTop: '1px solid #ECE4CB' } : undefined}
             >
               <span className="font-medium text-on-surface">{k.name}</span>
               <span className="text-on-surface-variant flex items-center gap-3">

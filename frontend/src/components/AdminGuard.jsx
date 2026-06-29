@@ -39,7 +39,7 @@ function AdminLoginModal({ onCancel }) {
       <form
         onSubmit={handleSubmit}
         className="bg-white w-full max-w-sm"
-        style={{ borderRadius: '2rem', padding: '36px', boxShadow: '0 24px 48px rgba(1,45,29,0.18)' }}
+        style={{ borderRadius: '2rem', padding: '36px', boxShadow: '0 24px 48px rgba(28,124,73,0.18)' }}
       >
         <h2 className="font-jakarta font-bold text-on-surface mb-1" style={{ fontSize: '1.25rem' }}>Admin Area</h2>
         <p className="font-inter text-sm text-on-surface-variant mb-6">Sign in to continue</p>
@@ -64,7 +64,7 @@ function AdminLoginModal({ onCancel }) {
         />
 
         {error && (
-          <div className="rounded-xl px-4 py-3 font-inter text-sm mt-3" style={{ background: 'rgba(86,0,0,0.08)', color: '#560000' }}>
+          <div className="rounded-xl px-4 py-3 font-inter text-sm mt-3" style={{ background: 'rgba(226,74,59,0.08)', color: '#B5392D' }}>
             {error}
           </div>
         )}
@@ -77,7 +77,7 @@ function AdminLoginModal({ onCancel }) {
             type="button"
             onClick={onCancel}
             className="flex-1 py-2.5 rounded-xl text-sm font-inter font-medium text-on-surface-variant transition-colors duration-150 hover:bg-surface-container-low"
-            style={{ background: '#f3f4f3' }}
+            style={{ background: '#F8F3E7' }}
           >
             Cancel
           </button>

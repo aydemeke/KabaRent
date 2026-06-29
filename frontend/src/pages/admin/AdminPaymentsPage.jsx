@@ -81,7 +81,7 @@ export default function AdminPaymentsPage() {
       </h1>
 
       {/* Record payment form */}
-      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)' }}>
+      <div className="bg-white rounded-2xl p-6 shadow-ambient border border-outline-variant">
         <h2 className="font-jakarta font-semibold text-on-surface mb-5">Record a Payment</h2>
         <form onSubmit={handleRecord} className="flex flex-wrap gap-4 items-end">
 
@@ -93,7 +93,7 @@ export default function AdminPaymentsPage() {
               required
               disabled={noUnpaid}
               className="ds-select"
-              style={noUnpaid ? { background: '#e2e2e2', color: '#414844' } : undefined}
+              style={noUnpaid ? { background: '#E4DABB', color: '#5A5443' } : undefined}
             >
               {noUnpaid
                 ? <option value="" disabled>No unpaid orders</option>
@@ -124,10 +124,10 @@ export default function AdminPaymentsPage() {
               disabled={noUnpaid}
               onChange={e => handleAmountChange(e.target.value)}
               className="ds-input"
-              style={amountError ? { borderColor: 'rgba(86,0,0,0.40)', background: 'rgba(86,0,0,0.04)' } : undefined}
+              style={amountError ? { borderColor: 'rgba(226,74,59,0.40)', background: 'rgba(226,74,59,0.04)' } : undefined}
             />
             {amountError && (
-              <p className="mt-1.5 font-inter text-xs" style={{ color: '#560000' }}>{amountError}</p>
+              <p className="mt-1.5 font-inter text-xs" style={{ color: '#B5392D' }}>{amountError}</p>
             )}
           </div>
 
@@ -146,7 +146,7 @@ export default function AdminPaymentsPage() {
                 ? 'bg-surface-container-highest text-on-surface-variant cursor-not-allowed'
                 : 'ds-btn-primary hover:scale-95 active:scale-90'
             }`}
-            style={!noUnpaid && !amountError ? { background: 'linear-gradient(135deg, #012d1d, #1b4332)' } : undefined}
+            style={!noUnpaid && !amountError ? { background: '#1C7C49' } : undefined}
           >
             {saving ? 'Saving…' : 'Record Payment'}
           </button>
@@ -158,7 +158,7 @@ export default function AdminPaymentsPage() {
             {loadingBalance ? (
               <p className="font-inter text-xs text-on-surface-variant">Loading balance…</p>
             ) : balance && (
-              <div className="flex flex-wrap gap-6 rounded-xl px-5 py-4 font-inter text-sm" style={{ background: '#f3f4f3' }}>
+              <div className="flex flex-wrap gap-6 rounded-xl px-5 py-4 font-inter text-sm" style={{ background: '#F8F3E7' }}>
                 <div>
                   <span className="text-on-surface-variant">Order total:</span>
                   <span className="ml-1.5 font-semibold text-on-surface">₪{Number(balance.totalPrice).toFixed(2)}</span>
@@ -176,20 +176,20 @@ export default function AdminPaymentsPage() {
           </div>
         )}
 
-        {error   && <p className="mt-4 font-inter text-sm" style={{ color: '#560000' }}>{error}</p>}
+        {error   && <p className="mt-4 font-inter text-sm" style={{ color: '#B5392D' }}>{error}</p>}
         {success && <p className="mt-4 font-inter text-sm text-primary font-medium">{success}</p>}
       </div>
 
       {/* Payments table */}
       <div className="ds-panel">
-        <div className="px-6 py-4" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="px-6 py-4" style={{ borderBottom: '1px solid #ECE4CB' }}>
           <h2 className="font-jakarta font-semibold text-on-surface">Payment History ({payments.length})</h2>
         </div>
         <table className="w-full text-sm">
           <thead><tr className="ds-table-head">
             <th>ID</th><th>Order</th><th>Amount</th><th>Method</th><th>Status</th><th>Paid at</th>
           </tr></thead>
-          <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
+          <tbody className="divide-y" style={{ borderColor: '#ECE4CB' }}>
             {payments.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-center font-inter text-on-surface-variant py-12">No payments recorded yet.</td>
@@ -203,7 +203,7 @@ export default function AdminPaymentsPage() {
                 <td className="px-4 py-3">
                   <span
                     className="inline-block px-2.5 py-0.5 rounded-full text-xs font-inter font-semibold"
-                    style={{ background: 'rgba(1,45,29,0.10)', color: '#012d1d' }}
+                    style={{ background: 'rgba(28,124,73,0.10)', color: '#1C7C49' }}
                   >
                     {p.status}
                   </span>

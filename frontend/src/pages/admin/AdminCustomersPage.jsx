@@ -44,7 +44,7 @@ export default function AdminCustomersPage() {
           <thead><tr className="ds-table-head">
             <th>Name</th><th>Phone</th><th>Email</th><th>Registered</th><th>Orders</th>
           </tr></thead>
-          <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.20)' }}>
+          <tbody className="divide-y" style={{ borderColor: '#ECE4CB' }}>
             {customers.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center font-inter text-on-surface-variant py-12">No customers yet.</td>
@@ -69,7 +69,7 @@ export default function AdminCustomersPage() {
                 </tr>
                 {expanded === c.id && (
                   <tr key={`${c.id}-orders`}>
-                    <td colSpan={5} className="px-6 py-4" style={{ background: '#f3f4f3' }}>
+                    <td colSpan={5} className="px-6 py-4" style={{ background: '#F8F3E7' }}>
                       {loadingOrders && !customerOrders[c.id] ? (
                         <p className="font-inter text-sm text-on-surface-variant">Loading…</p>
                       ) : (customerOrders[c.id] || []).length === 0 ? (
@@ -85,7 +85,7 @@ export default function AdminCustomersPage() {
                               <th className="text-left py-1">Status</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y" style={{ borderColor: 'rgba(193,200,194,0.25)' }}>
+                          <tbody className="divide-y" style={{ borderColor: '#ECE4CB' }}>
                             {customerOrders[c.id].map(o => (
                               <tr key={o.id}>
                                 <td className="py-1.5 pr-4 font-inter text-on-surface-variant">#{o.id}</td>
