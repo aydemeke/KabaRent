@@ -12,7 +12,7 @@ A full-stack rental management system for traditional Ethiopian Kaba garments, b
 |---|---|
 | **Backend** | Java 21, Spring Boot 3, Spring Data JPA / Hibernate, Spring Security 6 (stateless JWT via JJWT), libphonenumber, Lombok |
 | **Database** | PostgreSQL (**Neon**-hosted in production) |
-| **Frontend** | React 19, Vite, Tailwind CSS, React Router v7, Axios |
+| **Frontend** | React 19, Vite, Tailwind CSS ("Cotton & Thread" design system), React Router v7, Axios |
 | **Testing** | JUnit 5, Mockito, AssertJ, Spring Security Test, Testcontainers (PostgreSQL) |
 | **Build** | Maven (backend), npm (frontend) |
 | **Deployment** | Vercel (frontend) · Render (backend) · Neon (database) |

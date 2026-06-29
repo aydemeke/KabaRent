@@ -13,9 +13,11 @@ KabaRent is a wedding/event equipment rental management system (rental items are
 ### Backend
 ```bash
 cd backend
-mvn spring-boot:run        # Start API server on http://localhost:8080
-mvn clean install          # Build JAR
-mvn test                   # Run tests (see note below)
+mvn spring-boot:run                          # Start API server on http://localhost:8080
+mvn clean install                            # Build JAR
+mvn test                                     # Run all tests (see note below)
+mvn test -Dtest=AvailabilityServiceTest      # Run a single test class
+mvn test -Dtest=AvailabilityServiceTest#methodName  # Run a single test method
 ```
 
 - The backend connects to **PostgreSQL** via environment variables — `spring.datasource.url=${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (configured in `application.properties`; the old local `myuser`/`mypassword` block is commented out). In **production the database is Neon-hosted** (serverless Postgres); locally, point `DB_URL` at any reachable Postgres (e.g. `jdbc:postgresql://localhost:5432/kabarent`). A reachable Postgres must be running before `spring-boot:run`.
@@ -98,11 +100,36 @@ Order (1) → (∞) Payment
 
 **API layer** (`src/api/`): All HTTP calls are wrapped in per-resource modules (`kabas.js`, `orders.js`, `customers.js`, `payments.js`, `auth.js`) using a shared `axiosInstance.js` whose **`baseURL` comes from `import.meta.env.VITE_API_URL`** — supplied by `.env.local` (dev, untracked → `http://localhost:8080/api`) and the tracked `.env.production` (prod → `https://kabarent.onrender.com/api`). There is **no Vite dev proxy**; both dev and prod rely entirely on `VITE_API_URL`. The instance attaches `Authorization: Bearer <jwt>` from `auth/authStorage.js` (localStorage), redirects to `/login` on 401 (except on `/login`, `/register`, `/admin`), and handles Render free-tier **cold starts**: a non-blocking "waking the server" hint after ~3s (`coldStart.js`) plus a 2× retry on transport failures only (no HTTP response). `auth/useAuth.js` exposes the session to components.
 
+**Auth module** (`src/auth/`): `authStorage.js` (read/write JWT to localStorage), `useAuth.js` (React hook exposing session to components), `RequireCustomer.jsx` (route guard that redirects unauthenticated visitors to `/login` with the full path preserved).
+
+**Page layout:** Pages live under `src/pages/` organized by audience — `pages/admin/` (AdminDashboard, AdminKabas, AdminOrders, AdminCustomers, AdminPayments), `pages/customer/` (MyOrders, MyOrderDetail), and top-level (BrowsePage, LoginPage, RegisterPage, NewOrderPage, OrderStatusPage). Shared UI components (Navbar, Footer, Modal, Spinner, StatusBadge, DateInput, etc.) are in `src/components/`.
+
 **State management:** No global store. Each page manages its own state with `useState`/`useEffect`.
 
-**Design system:** Tailwind with a custom palette in `tailwind.config.js` plus reusable utility classes (`.ds-input`, `.ds-btn-primary`, `.ds-panel`, etc.) in `index.css`. In practice the codebase mixes these utilities with inline `style={{…}}` objects.
-- Primary: `#012d1d` (dark green), Secondary: `#705d00` (gold), Tertiary: `#560000` (burgundy)
-- Fonts: Plus Jakarta Sans (headings), Inter (body)
+**Design system ("Cotton & Thread"):** Tailwind with a custom palette in `tailwind.config.js` + mirrored CSS vars in `index.css` (`:root --color-*`, currently unused by JS but kept in sync). Component utilities live in `@layer components` in `index.css`. In practice the codebase mixes `ds-*` utilities with inline `style={{…}}` objects.
+
+Palette tokens — use these semantic names (not the old `secondary`/`tertiary` aliases):
+- `primary` → `#1C7C49` (leaf green) — buttons, active links, brand
+- `accent-gold` → `#FFC233` — active-link underline, gold accents. (`secondary` and `secondary-container` are aliases kept for backward compat.)
+- `accent-red` → `#E24A3B` — destructive UI. (`tertiary` is an alias kept for backward compat.)
+- `accent-red-text` → `#B5392D` — red that meets AA contrast on light backgrounds
+- `on-surface` → `#1C1B16` (ink) — primary text; `on-surface-variant` → `#5A5443` — secondary text / labels
+- `surface` → `#FDFBF5` — page background (warm cream); `surface-container-lowest` → `#FFFFFF`
+- `surface-container-low` → `#F8F3E7`, `surface-container` → `#F3ECD9`, `surface-container-high` → `#ECE4CB`, `surface-container-highest` → `#E4DABB`
+- `outline-variant` → `#ECE4CB` — hairlines, panel borders, dividers (same value as `surface-container-high`, different semantic role)
+
+`ds-*` component classes (all defined in `index.css`):
+- `.ds-input`, `.ds-select` — white bg, `#ECE4CB` border, leaf-green focus ring
+- `.ds-btn-primary` — flat `#1C7C49` fill, white text (no gradient)
+- `.ds-btn-ghost` — transparent, `#ECE4CB` border, leaf-green text; used for "הזמנה חדשה"
+- `.ds-btn-text` — borderless, gold underline on hover
+- `.ds-panel` — white, `rounded-2xl`, `#ECE4CB` border + ambient green shadow
+- `.ds-table-head` — `#F3ECD9` bg, tracked uppercase labels
+- `.ds-label` — muted uppercase caption
+- `.ds-tibeb-band` — **defined, not yet placed** (Phase 4 planned); gold-diamond + red-tick motif on leaf-green ground; use sparingly
+
+Navbar: sticky frosted-cream (`rgba(253,251,245,0.85)` + `backdrop-filter: blur(20px)`), `#ECE4CB` bottom hairline. Logo is a transparent-PNG `<img>` (white knocked out in the asset; no `mixBlendMode`). Active link = `border-b-2 border-accent-gold`. Auth = text links; "הזמנה חדשה" = `ds-btn-ghost`.
+Fonts: Plus Jakarta Sans (headings `h1`–`h6`), Inter (body, buttons, labels).
 
 ### Deployment & migrations
 

@@ -341,6 +341,8 @@ All HTTP calls live in per-resource modules under `src/api/` (`auth.js`, `kabas.
 - Request interceptor attaches `Authorization: Bearer <jwt>` from `auth/authStorage.js` (localStorage).
 - Response interceptors: on **401** clear the session and redirect to `/login` (except on `/login`, `/register`, `/admin`); **cold-start** handling for the Render free tier — a non-blocking "waking the server" hint (`coldStart.js`) and a 2× retry on transport failures only (no HTTP response).
 
+**Design system:** The palette and component tokens follow the "Cotton & Thread" design system — see `docs/DESIGN.md` for the full token and component reference.
+
 ---
 
 ## 5. Key Business Logic

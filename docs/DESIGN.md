@@ -1,54 +1,66 @@
-> ⚠️ **POSSIBLY STALE — pending a later audit.** This design-system document may not reflect the current implementation (which mixes `.ds-*` utilities with inline styles). Verify against `frontend/src/index.css` and `tailwind.config.js` before relying on it.
+# KabaRent Design System — "Cotton & Thread"
 
-# KabaRent Design System
+Palette and component tokens as of the Cotton & Thread redesign. Canonical source of truth is
+`frontend/tailwind.config.js` (Tailwind tokens) and `frontend/src/index.css` (`@layer components`
+`ds-*` classes + `:root --color-*` CSS vars). The CSS vars are kept in sync with Tailwind for
+reference but are currently unused by JavaScript.
+
+---
 
 ## Principles
 
 - **No hard borders on cards** — use ambient shadow and background shift for separation
-- **No pure black** — always use `on-surface` (#1a1c1c)
-- **No primary (#012d1d) as a full background** — dark green is for text, buttons, and accents only
-- **No horizontal divider lines between sections** — background color shifts signal transitions
+- **No pure black** — use `on-surface` (`#1C1B16`) everywhere
+- **No `primary` as a full-page background** — leaf green is for buttons, active states, and accents only
+- **No horizontal divider lines between sections** — background ramp shifts signal transitions
 - **Generous whitespace** — 16px more than instinct suggests, everywhere
+- **Cream, not white** — default surface is warm `#FDFBF5`; pure white is reserved for interactive elements (inputs, cards, modals)
 
 ---
 
 ## Color Palette
 
+### Primary / Accent
+
 | Token | Value | Usage |
 |---|---|---|
-| `primary` | `#012d1d` | Buttons, active text, brand |
-| `secondary` | `#705d00` | Secondary accents |
-| `tertiary` | `#560000` | Destructive / tertiary accents |
-| `secondary-container` | `#fcd400` | Gold highlight, dividers |
-| `surface` | `#f9f9f8` | Page background |
-| `surface-container-lowest` | `#ffffff` | Cards, modals, inputs on focus |
-| `surface-container-low` | `#f3f4f3` | Input fields, table heads |
-| `surface-container` | `#eeeeed` | Subtle section backgrounds |
-| `surface-container-high` | `#e8e8e7` | Hover states |
-| `surface-container-highest` | `#e2e2e2` | Disabled, deepest surfaces |
-| `on-surface` | `#1a1c1c` | Primary text |
-| `on-surface-variant` | `#414844` | Secondary text, labels |
-| `outline-variant` | `#c1c8c2` | Borders at reduced opacity |
+| `primary` | `#1C7C49` | Buttons, active links, brand |
+| `accent-gold` | `#FFC233` | Active-link underline, gold accents |
+| `accent-red` | `#E24A3B` | Destructive / warning UI |
+| `accent-red-text` | `#B5392D` | Red text on light bg (AA contrast) |
+
+> `secondary` and `secondary-container` are aliases of `accent-gold`; `tertiary` is an alias of `accent-red`. These aliases are kept for backward compat — use the `accent-*` names in new code.
+
+### Surface Ramp (warm cream)
+
+| Token | Value | Usage |
+|---|---|---|
+| `surface` | `#FDFBF5` | Page background |
+| `surface-container-lowest` | `#FFFFFF` | Cards, modals, inputs |
+| `surface-container-low` | `#F8F3E7` | Input fields, subtle card bg |
+| `surface-container` | `#F3ECD9` | Table heads, section backgrounds |
+| `surface-container-high` | `#ECE4CB` | Hover states, deeper section fills |
+| `surface-container-highest` | `#E4DABB` | Disabled surfaces |
+
+### Text / Outline
+
+| Token | Value | Usage |
+|---|---|---|
+| `on-surface` | `#1C1B16` | Primary text (ink) |
+| `on-surface-variant` | `#5A5443` | Secondary text, muted labels |
+| `outline-variant` | `#ECE4CB` | Borders, hairlines, dividers |
+
+> `outline-variant` shares its value with `surface-container-high` (`#ECE4CB`) but has a distinct semantic role — use `outline-variant` for borders and `surface-container-high` for fill/hover.
 
 ---
 
 ## Typography
 
 ### Fonts
-- **Plus Jakarta Sans** — headings (`h1`–`h3`), brand, display text  
-  Weights used: 700, 800; italic 700 for brand
-- **Inter** — body, labels, buttons, descriptions  
-  Weights used: 400, 500, 600
+- **Plus Jakarta Sans** — headings (`h1`–`h6`), brand, display text. Weights: 700, 800.
+- **Inter** — body, labels, buttons, descriptions. Weights: 400, 500, 600.
 
-### Scale
-| Role | Font | Size | Weight | Tracking |
-|---|---|---|---|---|
-| Display / Hero | Jakarta | 2rem+ | 800 | -0.02em |
-| Page title | Jakarta | 1.5rem | 700 | -0.01em |
-| Section heading | Jakarta | 1.125rem | 600 | — |
-| Body | Inter | 0.875rem | 400 | — |
-| Label / caption | Inter | 0.75rem | 500–600 | 0.06em uppercase |
-| Button | Inter | 0.875rem | 600 | 0.02em |
+Both are set globally in `index.css`: `h1`–`h6` via the heading rule, body/interactive elements via the `button, input, select, textarea, label, a` rule.
 
 ---
 
@@ -56,73 +68,110 @@
 
 ### Buttons
 
-**Primary**  
-`bg-primary text-white rounded-xl px-6 py-2.5 font-semibold`  
-Subtle gradient: `linear-gradient(135deg, #012d1d, #1b4332)`  
-Hover: `scale-95`, Active: `scale-90`
+**Primary (`.ds-btn-primary`)**
+Flat `#1C7C49` fill, white text, `border-radius: 0.625rem`, weight 600.
+Hover: darken to `#197042` + stronger ambient shadow. Active: `#17663C`. Disabled: `opacity-50`.
 
-**Secondary (ghost)**  
-`rounded-full border border-outline-variant/20 text-primary px-5 py-2`  
-No fill. Hover: background shifts to `surface-container-low`
+**Ghost (`.ds-btn-ghost`)**
+Transparent, `1px solid #ECE4CB` border, `#1C7C49` text, `border-radius: 999px` (pill).
+Hover: soft green tint background + `#1C7C49` border.
+Used for "הזמנה חדשה" in the Navbar (with `border-radius: 10px` override).
 
-**Tertiary (text)**  
-`text-primary` with gold (`#fcd400`) underline, 2px, expands on hover  
-No background, no border
+**Text (`.ds-btn-text`)**
+Borderless, `#1C7C49` text. Hover: gold underline (`#FFC233`, 2px, offset 2px).
 
-**Destructive**  
-`text-tertiary` (#560000), same tertiary button pattern
+**Destructive**
+Use `accent-red-text` (`#B5392D`) for text on light backgrounds.
 
-### Input Fields
+### Input Fields (`.ds-input`, `.ds-select`)
 
-- Background: `surface-container-low` (#f3f4f3)
-- Border: none (transparent)
-- Border-radius: `rounded-xl`
-- On focus: background → `white`, border → `primary` at 30% opacity, no ring
-- Transition: `transition-all duration-150`
+- Background: `#FFFFFF`
+- Border: `1px solid #ECE4CB`
+- Border-radius: `0.75rem` (`rounded-xl`)
+- Focus: border → `#1C7C49`, `box-shadow: 0 0 0 3px rgba(28,124,73,0.15)`, no browser outline
+- Placeholder color: `#5A5443` (`on-surface-variant`)
+- Disabled (select only): `#E4DABB` bg, `#5A5443` text, `not-allowed` cursor
 
-Shared class: `.ds-input` (defined in `index.css`)
+Touch targets: `min-height: 44px` enforced below 640px.
 
-### Cards (Kaba)
+### Kaba Cards (BrowsePage)
 
-- Background: `white` (surface-container-lowest)
+- Background: `#FFFFFF`
 - Border-radius: `2.5rem`
 - No border
-- Ambient shadow: `0 2px 16px rgba(1,45,29,0.06)` → hover: `0 12px 32px rgba(1,45,29,0.12)`
-- Image: `aspect-ratio: 4/5`, hover scale-110 over 700ms
-- Category badge: glassmorphism — `rgba(255,255,255,0.90)` + `backdrop-blur(8px)`, pill shape
+- Ambient shadow on hover (green-tinted); shadow values defined as Tailwind `ambient`/`ambient-lg` tokens in `tailwind.config.js`
+- Image area: fixed `height: 220px`, `object-fit: contain`, hover `scale-105` over `duration-700`
+- Bottom gradient overlay: `rgba(1,45,29,0.40)` → transparent (darkens image base for badge legibility)
+- Category badge (top-right): `rgba(255,255,255,0.90)` + `backdrop-filter: blur(8px)`, pill shape
+- Availability badge (top-left): solid green/red pill
 
-### Admin Panels
+> Note: inline shadow values in BrowsePage still use the old `rgba(1,45,29,…)` — the Tailwind config tokens use the correct new `rgba(28,124,73,…)`. These inline values are pending a cleanup pass.
 
-- Background: `white`
-- Border-radius: `rounded-2xl`
-- No border, ambient shadow: `0 2px 16px rgba(26,28,28,0.06)`
-- Table head: `surface-container-low`, uppercase, tracked labels
-- Table row dividers: `outline-variant` at 20% opacity
-- Row hover: `surface-container-low`
+### Admin Panels (`.ds-panel`)
 
-### Modals
+- Background: `#FFFFFF`
+- Border: `1px solid #ECE4CB`
+- Border-radius: `1rem` (`rounded-2xl`)
+- Box shadow: `0 2px 16px rgba(28,124,73,0.06)`
 
-- Overlay: `rgba(0,0,0,0.40)` + `backdrop-blur(16px)` (glassmorphism)
-- Box: `white`, `rounded-[2rem]`, `padding: 32px`
-- Ambient shadow only, no border
+Table head (`.ds-table-head`):
+- Background: `#F3ECD9` (`surface-container`)
+- Bottom border: `1px solid #ECE4CB`
+- Text: `#1C1B16`, uppercase, `letter-spacing: 0.05em`, weight 600, `0.75rem`
+
+### Modals (`Modal.jsx`)
+
+- Overlay: `rgba(0,0,0,0.40)` + `backdrop-filter: blur(16px)`
+- Box: `#FFFFFF`, `border-radius: 2rem`, padding `32px`, `max-width: lg`
+- Box shadow: `0 24px 48px rgba(1,45,29,0.18)` (pending token cleanup)
+
+`KabaDetailModal.jsx` is a separate component with its own layout (image header + body); it uses `border-radius: 20px` and a different inner structure — it is not an instance of `Modal.jsx`.
+
+---
+
+## Navbar / Header
+
+- Sticky, `z-40`
+- Background: `rgba(253,251,245,0.85)` + `backdrop-filter: blur(20px)` (frosted warm cream)
+- Bottom hairline: `1px solid #ECE4CB`
+- Box shadow: `0px 12px 32px rgba(28,124,73,0.05)`
+- Active link: `border-b-2 border-accent-gold pb-0.5`
+- Auth links: text-style (`color: #1C7C49`, hover darken)
+- "הזמנה חדשה": `.ds-btn-ghost` with `border-radius: 10px`
+- Logo: transparent PNG (`/kaba-rent-logo.png` — white knocked out in the asset), plain `<img>`, no `mixBlendMode`
+- Mobile dropdown: `rgba(253,251,245,0.97)` bg, `1px solid #ECE4CB` top border
 
 ---
 
 ## Layout
 
-- **2-column staggered grid** for Kaba cards: alternate cards offset `mt-12` downward
-- **No equal 3-column grid** on the browse page
-- **Section separation** via background color shift, never border lines
-- **Asymmetric** where possible: large image left, offset text right
+- **Responsive grid** for Kaba cards: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, `gap-5` — standard 3-column grid, no staggering
+- **Section separation** via background ramp shift, never border lines
+- Page background: `.customer-bg` class in `index.css` — fixed pseudo-element (`::before`) holds a tinted background image (`rgba(253,251,245,0.85)` gradient overlay over `/kaba-rent-bg-1.png`) to avoid repaint jitter on scroll
 
 ---
 
-## Shared CSS Classes (`index.css`)
+## Focus / Accessibility
 
-```css
-.ds-input          /* styled text/number/email/tel inputs */
-.ds-select         /* styled select dropdowns */
-.ds-btn-primary    /* deep green primary button */
-.ds-panel          /* white rounded-2xl admin panel */
-.ds-table-head     /* standardized table head row */
-```
+- WCAG AA contrast throughout
+- RTL (Hebrew) preserved on all customer-facing pages
+- Visible keyboard focus rings on all interactive elements:
+  - `ds-input`, `ds-select`, `ds-btn-*`: `outline: 2px solid #1C7C49; outline-offset: 2px`
+  - Date field wrappers (`.kr-datefield`, `.kr-dateinput`): `:focus-within` ring on the wrapper (the `<input>` itself is visually overlaid at `opacity: 0`)
+  - Kaba cards (`.kr-card`): `:focus-visible` ring on the card wrapper
+
+---
+
+## Shared CSS Classes (`index.css @layer components`)
+
+| Class | Purpose |
+|---|---|
+| `.ds-input` | Styled text/number/email/tel inputs |
+| `.ds-select` | Styled select dropdowns |
+| `.ds-btn-primary` | Flat leaf-green primary button |
+| `.ds-btn-ghost` | Bordered ghost button (leaf-green on cream) |
+| `.ds-btn-text` | Borderless text/link button with gold underline |
+| `.ds-panel` | White admin panel wrapper |
+| `.ds-table-head` | Standardized table head row |
+| `.ds-label` | Muted uppercase section label |
+| `.ds-tibeb-band` | Gold/red tibeb motif band — **defined, not yet placed (Phase 4 planned)** |
