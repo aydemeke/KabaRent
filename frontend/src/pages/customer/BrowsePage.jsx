@@ -37,7 +37,7 @@ const HOW_IT_WORKS = [
 ]
 
 function StepIcon({ type }) {
-  const p = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#705d00', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  const p = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#FFC233', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
   if (type === 'search')
     return <svg {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   if (type === 'calendar')
@@ -151,7 +151,7 @@ export default function BrowsePage() {
             fontFamily: "'Plus Jakarta Sans', sans-serif",
             fontSize: '32px',
             fontWeight: 700,
-            color: '#012d1d',
+            color: '#1C1B16',
             letterSpacing: '-0.02em',
             marginBottom: '20px',
             lineHeight: 1.2,
@@ -161,7 +161,7 @@ export default function BrowsePage() {
         </h1>
 
         {/* Gold divider */}
-        <div style={{ width: '48px', height: '3px', background: '#fcd400', borderRadius: '2px', margin: '0 auto 24px' }} />
+        <div style={{ width: '48px', height: '3px', background: '#FFC233', borderRadius: '2px', margin: '0 auto 24px' }} />
 
         {/* Subtitle */}
         <p
@@ -169,7 +169,7 @@ export default function BrowsePage() {
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '18px',
-            color: '#414844',
+            color: '#5A5443',
             maxWidth: '560px',
             margin: '0 auto',
             lineHeight: 1.6,
@@ -186,7 +186,7 @@ export default function BrowsePage() {
           className="flex flex-col sm:flex-row items-stretch sm:items-center w-full sm:max-w-[700px] mx-auto gap-2 sm:gap-0 rounded-3xl sm:rounded-[50px] sm:h-16"
           style={{
             background: '#ffffff',
-            boxShadow: '0px 8px 40px rgba(1,45,29,0.10)',
+            boxShadow: '0px 8px 40px rgba(28,124,73,0.10)',
             padding: '6px',
           }}
         >
@@ -196,7 +196,7 @@ export default function BrowsePage() {
             className="w-full sm:w-auto justify-center sm:justify-start order-3 sm:order-none"
             style={{
               flexShrink: 0,
-              background: '#012d1d',
+              background: '#1C7C49',
               color: '#ffffff',
               borderRadius: '40px',
               padding: '0 24px',
@@ -212,8 +212,8 @@ export default function BrowsePage() {
               cursor: 'pointer',
               transition: 'all 0.2s ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#1b4332'; e.currentTarget.style.transform = 'scale(0.97)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#012d1d'; e.currentTarget.style.transform = 'scale(1)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#17663C'; e.currentTarget.style.transform = 'scale(0.97)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#1C7C49'; e.currentTarget.style.transform = 'scale(1)' }}
           >
             בדוק זמינות
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}>
@@ -234,14 +234,14 @@ export default function BrowsePage() {
               position: 'relative',
             }}
           >
-            <label htmlFor="search-return-date" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#5b615b', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+            <label htmlFor="search-return-date" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#5A5443', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך החזרה
             </label>
             <div className="kr-datefield" style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#012d1d" strokeWidth={2} style={{ flexShrink: 0 }} aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1C7C49" strokeWidth={2} style={{ flexShrink: 0 }} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: returnDate ? '#1a1c1c' : '#6b726b', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: returnDate ? '#1C1B16' : '#5A5443', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
                 {returnDate ? returnDate.split('-').reverse().join('/') : 'בחר (לא חובה)'}
               </span>
               <input
@@ -256,7 +256,7 @@ export default function BrowsePage() {
             </div>
           </div>
 
-          <div className="hidden sm:block" style={{ width: '1px', height: '28px', background: '#c1c8c2', opacity: 0.5, flexShrink: 0 }} />
+          <div className="hidden sm:block" style={{ width: '1px', height: '28px', background: '#ECE4CB', opacity: 0.5, flexShrink: 0 }} />
 
           {/* Event date field */}
           <div
@@ -271,14 +271,14 @@ export default function BrowsePage() {
               position: 'relative',
             }}
           >
-            <label htmlFor="search-event-date" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#5b615b', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+            <label htmlFor="search-event-date" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#5A5443', marginBottom: '2px', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
               תאריך אירוע
             </label>
             <div className="kr-datefield" style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#012d1d" strokeWidth={2} style={{ flexShrink: 0 }} aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1C7C49" strokeWidth={2} style={{ flexShrink: 0 }} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: eventDate ? '#1a1c1c' : '#6b726b', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: eventDate ? '#1C1B16' : '#5A5443', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
                 {eventDate ? eventDate.split('-').reverse().join('/') : 'בחר תאריך'}
               </span>
               <input
@@ -297,14 +297,14 @@ export default function BrowsePage() {
 
         {filtered && (
           <div style={{ maxWidth: '700px', margin: '12px auto 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
-            <p dir="rtl" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#012d1d' }}>
+            <p dir="rtl" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#1C7C49' }}>
               מציג {kabas.length} קאבות זמינות עבור {eventDate}
               {returnDate && returnDate !== eventDate ? ` ← ${returnDate}` : ''}
             </p>
             <button
               type="button"
               onClick={handleClear}
-              style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#414844', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: '#fcd400' }}
+              style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#5A5443', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: '#FFC233' }}
             >
               נקה סינון
             </button>
@@ -339,9 +339,9 @@ export default function BrowsePage() {
                 fontWeight: 500,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                border: activeCategory === pill ? 'none' : '1px solid #c1c8c2',
-                background: activeCategory === pill ? '#2E7D32' : 'transparent',
-                color: activeCategory === pill ? 'white' : '#1a1c1c',
+                border: activeCategory === pill ? 'none' : '1px solid #ECE4CB',
+                background: activeCategory === pill ? '#1C7C49' : 'transparent',
+                color: activeCategory === pill ? 'white' : '#1C1B16',
               }}
             >
               {pill}
@@ -351,7 +351,7 @@ export default function BrowsePage() {
 
         {/* Sort dropdown — left (RTL end) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label htmlFor="sort-by" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#5b615b', whiteSpace: 'nowrap' }}>
+          <label htmlFor="sort-by" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#5A5443', whiteSpace: 'nowrap' }}>
             מיון לפי:
           </label>
           <select
@@ -362,8 +362,8 @@ export default function BrowsePage() {
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '13px',
-              color: '#1a1c1c',
-              border: '1px solid #c1c8c2',
+              color: '#1C1B16',
+              border: '1px solid #ECE4CB',
               borderRadius: '8px',
               padding: '6px 10px',
               background: 'white',
@@ -402,18 +402,18 @@ export default function BrowsePage() {
                     setSelectedKaba(kaba)
                   }
                 }}
-                className="kr-card group cursor-pointer transition-all duration-500"
+                className="kr-card group cursor-pointer transition-all duration-500 shadow-ambient hover:shadow-ambient-lg"
                 style={{
                   background: '#ffffff',
                   borderRadius: '2.5rem',
                   overflow: 'hidden',
-                  boxShadow: '0 2px 16px rgba(1,45,29,0.06)',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 12px 32px rgba(1,45,29,0.12)')}
-                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 16px rgba(1,45,29,0.06)')}
               >
+                {/* Gold top edge */}
+                <div style={{ height: '1px', background: '#FFC233' }} />
+
                 {/* Image area */}
-                <div style={{ position: 'relative', height: '220px', overflow: 'hidden', background: '#eeeeed' }}>
+                <div style={{ position: 'relative', height: '220px', overflow: 'hidden', background: '#F3ECD9' }}>
                   {kaba.imageUrl ? (
                     <img
                       src={kaba.imageUrl}
@@ -426,14 +426,14 @@ export default function BrowsePage() {
                   )}
                   <div style={{
                     position: 'absolute', inset: 0,
-                    background: 'linear-gradient(to top, rgba(1,45,29,0.40) 0%, transparent 55%)',
+                    background: 'linear-gradient(to top, rgba(28,124,73,0.35) 0%, transparent 55%)',
                   }} />
 
                   {/* Category badge — top-right */}
                   {kaba.category && (
                     <span
                       className="absolute top-5 right-5 font-inter font-semibold uppercase"
-                      style={{ fontSize: '12px', letterSpacing: '0.1em', padding: '5px 13px', borderRadius: '999px', background: 'rgba(255,255,255,0.90)', backdropFilter: 'blur(8px)', color: '#012d1d' }}
+                      style={{ fontSize: '12px', letterSpacing: '0.1em', padding: '5px 13px', borderRadius: '999px', background: 'rgba(255,255,255,0.90)', backdropFilter: 'blur(8px)', color: '#1C1B16' }}
                     >
                       {CATEGORY_HE[kaba.category] ?? kaba.category}
                     </span>
@@ -442,7 +442,7 @@ export default function BrowsePage() {
                   {/* Availability badge — top-left */}
                   <span
                     className="absolute top-5 left-5 font-inter font-semibold"
-                    style={{ fontSize: '12px', padding: '4px 12px', borderRadius: '999px', background: inStock ? 'rgba(46,125,50,0.95)' : 'rgba(180,30,30,0.95)', color: 'white' }}
+                    style={{ fontSize: '12px', padding: '4px 12px', borderRadius: '999px', background: inStock ? 'rgba(28,124,73,0.95)' : 'rgba(226,74,59,0.90)', color: 'white' }}
                   >
                     {inStock ? 'זמין' : 'אזל המלאי'}
                   </span>
@@ -461,17 +461,17 @@ export default function BrowsePage() {
                     {kaba.size && (
                       <span
                         className="self-start font-inter font-medium"
-                        style={{ fontSize: '12px', padding: '3px 11px', borderRadius: '999px', background: '#f3f4f3', color: '#414844', letterSpacing: '0.04em' }}
+                        style={{ fontSize: '12px', padding: '3px 11px', borderRadius: '999px', background: '#F8F3E7', color: '#5A5443', letterSpacing: '0.04em' }}
                       >
                         מידה {SIZE_HE[kaba.size] ?? kaba.size}
                       </span>
                     )}
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontStyle: 'italic', color: '#5b615b' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontStyle: 'italic', color: '#5A5443' }}>
                       {kaba.quantity} פריטים זמינים
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(193,200,194,0.30)' }}>
+                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #ECE4CB' }}>
                     <div className="flex items-baseline gap-1">
                       <span className="font-jakarta font-black text-primary" style={{ fontSize: '1.5rem' }}>₪{kaba.pricePerDay}</span>
                       <span className="font-inter text-on-surface-variant" style={{ fontSize: '12px' }}>/ יום</span>
@@ -502,7 +502,7 @@ export default function BrowsePage() {
           fontFamily: 'Inter, sans-serif',
           fontSize: '16px',
           fontWeight: 700,
-          color: '#5b615b',
+          color: '#5A5443',
           letterSpacing: '0.05em',
           textTransform: 'uppercase',
           marginBottom: '16px',
@@ -516,7 +516,7 @@ export default function BrowsePage() {
               {i > 0 && (
                 <span
                   className="hidden sm:inline"
-                  style={{ color: '#c1c8c2', fontSize: '15px', lineHeight: 1, userSelect: 'none', flexShrink: 0 }}
+                  style={{ color: '#ECE4CB', fontSize: '15px', lineHeight: 1, userSelect: 'none', flexShrink: 0 }}
                 >
                   ←
                 </span>
@@ -525,7 +525,7 @@ export default function BrowsePage() {
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}
               >
                 <StepIcon type={icon} />
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1a1c1c', whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1C1B16', whiteSpace: 'nowrap' }}>
                   {title}
                 </span>
               </div>
