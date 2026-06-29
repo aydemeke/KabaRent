@@ -61,7 +61,7 @@ export default function OrderStatusPage() {
   if (loading) return <Spinner />
   if (error) return (
     <div className="text-center py-20" dir="rtl">
-      <p className="font-inter text-sm mb-4" style={{ color: '#560000' }}>{error}</p>
+      <p className="font-inter text-sm mb-4" style={{ color: '#B5392D' }}>{error}</p>
       <Link to="/" className="ds-btn-text">חזרה לעיון</Link>
     </div>
   )
@@ -75,11 +75,11 @@ export default function OrderStatusPage() {
       {/* Confirmation banner */}
       <div
         className="rounded-2xl px-6 py-5 mb-6 flex items-start gap-4"
-        style={{ background: 'rgba(1,45,29,0.08)' }}
+        style={{ background: 'rgba(28,124,73,0.08)' }}
       >
         <span
           className="font-inter font-bold text-white flex-shrink-0 flex items-center justify-center"
-          style={{ width: 36, height: 36, borderRadius: '50%', background: '#012d1d', fontSize: '16px' }}
+          style={{ width: 36, height: 36, borderRadius: '50%', background: '#1C7C49', fontSize: '16px' }}
         >
           ✓
         </span>
@@ -94,16 +94,16 @@ export default function OrderStatusPage() {
       </div>
 
       {/* Order summary */}
-      <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)' }}>
+      <div className="bg-white rounded-2xl overflow-hidden shadow-ambient border border-outline-variant">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #ECE4CB' }}>
           <span className="font-jakarta font-semibold text-on-surface">הזמנה מספר #{order.id}</span>
           <StatusBadge status={order.status} />
         </div>
 
         {/* Dates grid */}
-        <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5" style={{ borderBottom: '1px solid #ECE4CB' }}>
           <Row label="תאריך אירוע"   value={order.eventDate} />
           <Row label="תאריך החזרה"   value={order.returnDate} />
           <Row label="משך השכרה"     value={`${rentalDays} ${rentalDays === 1 ? 'יום' : 'ימים'}`} />
@@ -111,7 +111,7 @@ export default function OrderStatusPage() {
         </div>
 
         {/* Items */}
-        <div className="px-6 py-5" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="px-6 py-5" style={{ borderBottom: '1px solid #ECE4CB' }}>
           <p className="ds-label mb-3">פריטים</p>
           <div className="space-y-2">
             {order.items.map(item => (
@@ -129,7 +129,7 @@ export default function OrderStatusPage() {
         </div>
 
         {/* Total */}
-        <div className="px-6 py-4 flex justify-between items-center" style={{ borderBottom: '1px solid rgba(193,200,194,0.25)' }}>
+        <div className="px-6 py-4 flex justify-between items-center" style={{ borderBottom: '1px solid #ECE4CB' }}>
           <span className="font-inter font-semibold text-on-surface-variant text-sm">סה״כ</span>
           <span className="font-jakarta font-black text-primary" style={{ fontSize: '1.35rem' }}>₪{order.totalPrice}</span>
         </div>
@@ -142,7 +142,7 @@ export default function OrderStatusPage() {
         </div>
 
         {order.notes && (
-          <div className="px-6 pb-5 font-inter text-sm" style={{ borderTop: '1px solid rgba(193,200,194,0.25)', paddingTop: '16px' }}>
+          <div className="px-6 pb-5 font-inter text-sm" style={{ borderTop: '1px solid #ECE4CB', paddingTop: '16px' }}>
             <span className="text-on-surface-variant">הערות: </span>
             <span className="text-on-surface">{order.notes}</span>
           </div>

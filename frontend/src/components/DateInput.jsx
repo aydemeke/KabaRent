@@ -4,7 +4,7 @@ function CalendarIcon() {
       xmlns="http://www.w3.org/2000/svg"
       className="w-4 h-4 flex-shrink-0"
       fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-      style={{ color: '#012d1d', opacity: 0.6 }}
+      style={{ color: '#1C7C49', opacity: 0.6 }}
       aria-hidden="true"
     >
       <path strokeLinecap="round" strokeLinejoin="round"
@@ -25,8 +25,8 @@ export default function DateInput({ id, value, onChange, onFocus, placeholder, m
       className={`kr-dateinput relative transition-all duration-150 ${className}`}
       style={{
         borderRadius: '0.75rem',
-        background: value ? '#ffffff' : '#f3f4f3',
-        border: value ? '1px solid rgba(1,45,29,0.25)' : '1px solid transparent',
+        background: value ? '#ffffff' : '#F8F3E7',
+        border: value ? '1px solid #ECE4CB' : '1px solid transparent',
       }}
     >
       <div className="flex items-center gap-2 px-4 py-2.5 pointer-events-none select-none min-h-[42px]">

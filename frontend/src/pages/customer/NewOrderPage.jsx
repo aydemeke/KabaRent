@@ -21,11 +21,11 @@ const today = new Date().toISOString().split('T')[0]
 
 function SectionCard({ step, title, children }) {
   return (
-    <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 16px rgba(26,28,28,0.06)' }}>
+    <div className="bg-white rounded-2xl p-6 shadow-ambient border border-outline-variant">
       <div className="flex items-center gap-3 mb-5" dir="rtl">
         <span
           className="font-inter font-bold text-sm text-white flex-shrink-0 flex items-center justify-center"
-          style={{ width: 28, height: 28, borderRadius: '50%', background: '#012d1d' }}
+          style={{ width: 28, height: 28, borderRadius: '50%', background: '#1C7C49' }}
         >
           {step}
         </span>
@@ -133,7 +133,7 @@ export default function NewOrderPage() {
             disabled={kabas.length === 0}
             aria-label="בחר קאבה"
             className="ds-select"
-            style={kabas.length === 0 ? { background: '#e2e2e2', color: '#414844' } : undefined}
+            style={kabas.length === 0 ? { background: '#E4DABB', color: '#5A5443' } : undefined}
           >
             {kabas.length === 0
               ? <option value="" disabled>אין קאבות זמינות</option>
@@ -183,8 +183,8 @@ export default function NewOrderPage() {
             <div
               className="mt-4 text-sm px-4 py-3 rounded-xl font-inter font-medium"
               style={availability.available
-                ? { background: 'rgba(1,45,29,0.08)', color: '#012d1d' }
-                : { background: 'rgba(86,0,0,0.08)', color: '#560000' }
+                ? { background: 'rgba(28,124,73,0.08)', color: '#1C7C49' }
+                : { background: 'rgba(226,74,59,0.08)', color: '#B5392D' }
               }
             >
               {availability.available
@@ -246,7 +246,7 @@ export default function NewOrderPage() {
         </SectionCard>
 
         {error && (
-          <div className="rounded-xl px-4 py-3 font-inter text-sm" style={{ background: 'rgba(86,0,0,0.08)', color: '#560000' }}>
+          <div className="rounded-xl px-4 py-3 font-inter text-sm" style={{ background: 'rgba(226,74,59,0.08)', color: '#B5392D' }}>
             {error}
           </div>
         )}
@@ -256,7 +256,7 @@ export default function NewOrderPage() {
             type="button"
             onClick={() => navigate(-1)}
             className="flex-1 py-3.5 text-base rounded-xl font-inter font-medium transition-colors"
-            style={{ background: '#f3f4f3', color: '#414844', border: 'none', cursor: 'pointer' }}
+            style={{ background: '#F8F3E7', color: '#5A5443', border: 'none', cursor: 'pointer' }}
           >
             ביטול
           </button>
