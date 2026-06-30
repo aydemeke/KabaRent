@@ -63,7 +63,7 @@ public class ResendNotificationSender implements NotificationSender {
 
         try {
             String subject = buildOrderCreatedSubject(request.payload());
-            String html = buildOrderCreatedHtml(recipient, request.payload());
+            String html = EmailLayout.wrap(buildOrderCreatedContent(recipient, request.payload()));
 
             Map<String, Object> body = Map.of(
                     "from", from,
@@ -94,19 +94,29 @@ public class ResendNotificationSender implements NotificationSender {
         return "אישור הזמנה #" + payload.get("orderId") + " - KabaRent";
     }
 
-    private String buildOrderCreatedHtml(NotificationRecipient recipient, Map<String, String> payload) {
+    private String buildOrderCreatedContent(NotificationRecipient recipient, Map<String, String> payload) {
         return """
-                <div dir="rtl" style="font-family: sans-serif; text-align: right;">
-                  <h2>תודה על ההזמנה, %s!</h2>
-                  <p>ההזמנה שלך התקבלה ומחכה לאישור.</p>
-                  <ul>
-                    <li>מספר הזמנה: %s</li>
-                    <li>תאריך האירוע: %s</li>
-                    <li>תאריך החזרה: %s</li>
-                    <li>סכום כולל: %s ₪</li>
-                  </ul>
-                  <p>נעדכן אותך כשההזמנה תאושר.</p>
-                </div>
+                <p style="margin:0 0 16px 0; font-size:15px; color:#1C1B16;">שלום %s,</p>
+                <h2 style="margin:0 0 16px 0; font-size:20px; color:#1C7C49;">הזמנתך התקבלה!</h2>
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; margin-bottom:16px;">
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">מספר הזמנה</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">תאריך אירוע</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">תאריך החזרה</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; color:#5A5443;">סכום כולל</td>
+                    <td style="padding:8px 0; color:#1C1B16; text-align:left;">%s ₪</td>
+                  </tr>
+                </table>
+                <p style="margin:0; font-size:14px; color:#1C1B16;">נעדכן אותך כשההזמנה תאושר. תודה שבחרת ב-KabaRent.</p>
                 """.formatted(
                 recipient.name(),
                 payload.get("orderId"),
