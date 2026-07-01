@@ -226,12 +226,13 @@ customers ──< orders ──< order_items >── kabas
 
 | Package        | Responsibility                                              |
 |----------------|-------------------------------------------------------------|
-| `config`       | `CorsConfig`, `SecurityConfig` (filter chain), `DataInitializer` (seeds admin from env) |
+| `config`       | `CorsConfig`, `SecurityConfig` (filter chain), `AsyncConfig` (notification thread pool, `@EnableAsync`), `DataInitializer` (seeds admin from env) |
 | `security`     | `JwtService`, `JwtAuthenticationFilter`, `CustomerUserDetailsService`, `CustomerPrincipal` |
 | `controller`   | REST endpoints, request handling, response mapping (incl. `AuthController`, `MyOrderController`, `HealthController`) |
 | `service`      | Business logic, transaction management (incl. `AuthService`, `PhoneNumberService`) |
 | `repository`   | JPA repositories, custom JPQL queries                       |
 | `model`        | JPA entities, enums (incl. `Role`)                          |
+| `notification` | Channel-agnostic notification layer — see [Notification Architecture](#notification-architecture) below |
 | `validation`   | `@ValidPhone` / `PhoneValidator` (delegates to `PhoneNumberService`) |
 | `exception`    | Domain exceptions + `GlobalExceptionHandler` (404/400/409/401/403) |
 | `dto.request`  | Inbound request bodies (validated)                          |
@@ -312,6 +313,73 @@ The `customerId` is always derived from the JWT, never the request.
 | `AvailabilityService` | Detect date-range overlaps, return available unit count for a Kaba          |
 | `OrderService`        | Create orders (validates availability), price calculation, status transitions, ownership checks for `/api/my/**` |
 | `PaymentService`      | Record payments, query payments/balance by order                            |
+
+---
+
+### Notification Architecture
+
+> All notification code lives in `com.kabarent.notification`. Nothing outside this package needs to change when adding a new notification type or switching channels.
+
+#### Event flow
+
+```
+OrderService (after order persists)
+  └─ ApplicationEventPublisher.publishEvent(OrderCreatedEvent)
+       │
+       ├─ @TransactionalEventListener(AFTER_COMMIT) fires only after the DB transaction commits
+       │
+       ├─ CustomerOrderNotificationListener  ──► NotificationSender.send(ORDER_CREATED)
+       │   @Async("notificationExecutor")        recipient = customer (email may be null → skipped)
+       │   try/catch isolation
+       │
+       └─ AdminOrderNotificationListener     ──► NotificationSender.send(ORDER_CREATED_ADMIN)
+           @Async("notificationExecutor")        recipient = fixed admin address (app.admin.email)
+           try/catch isolation                   fires regardless of customer email presence
+```
+
+The two listeners are **independent Spring beans** — each with its own try/catch — so a failure in one never affects the other or the order flow. Both run on the `notif-*` thread pool (core 2, max 4, queue 50, defined in `AsyncConfig`).
+
+#### Abstractions
+
+| Class / Record | Role |
+|---|---|
+| `NotificationSender` | Interface: `void send(NotificationRequest)` |
+| `NotificationRequest` | Record: `type`, `recipient`, `payload` (Map<String,String>) |
+| `NotificationRecipient` | Record: `name`, `phone`, `email` (all nullable) |
+| `NotificationType` | Enum: `ORDER_CREATED`, `ORDER_CREATED_ADMIN` |
+| `OrderCreatedEvent` | Record published by `OrderService`; carries `orderId`, `customerName`, `customerPhone`, `customerEmail`, `totalPrice`, `eventDate`, `returnDate` |
+
+#### Provider selection
+
+`NotificationSender` is chosen at startup by `@ConditionalOnProperty` on `app.notifications.provider`:
+
+| Value | Bean activated | Behaviour |
+|---|---|---|
+| `logging` (default, `matchIfMissing=true`) | `LoggingNotificationSender` | Logs to stdout at INFO; no external calls |
+| `resend` | `ResendNotificationSender` | POSTs to `https://api.resend.com/emails` via Spring `RestClient` |
+
+Exactly one implementation is registered as a bean at a time — no `@Primary`/`@Qualifier` needed.
+
+#### ResendNotificationSender
+
+- **Startup fail-fast:** `@PostConstruct` throws `IllegalStateException` if `app.resend.api-key` is blank when `provider=resend` — a misconfigured deployment refuses to start rather than silently dropping emails.
+- **Timeouts:** `SimpleClientHttpRequestFactory` with 5 s connect + read.
+- **Phone-only customers:** if `recipient.email()` is null, the send is skipped with an INFO log. This is a valid per-customer state, not an error.
+- **Email composition:** `send()` switches on `NotificationType` to pick the right subject + content builder. Each builder produces inner HTML only; `EmailLayout.wrap(innerHtml)` adds the shared branded shell.
+- **Error handling:** `RestClientException` and any other exception are caught and logged at ERROR; never rethrown.
+
+#### EmailLayout
+
+`EmailLayout.wrap(String innerHtml)` returns a complete HTML document using **table-based layout with inline hex colors only** — required for email client compatibility (Gmail and Outlook strip `<style>` blocks and Tailwind classes). The shell provides the Cotton & Thread branded header, gold accent rule, white card, cream background, and minimal footer. See `docs/DESIGN.md` → *Email Templates* for the visual spec.
+
+#### Configuration properties
+
+| Property | Env var | Default | Purpose |
+|---|---|---|---|
+| `app.notifications.provider` | `NOTIFICATIONS_PROVIDER` | `logging` | Active sender |
+| `app.resend.api-key` | `RESEND_API_KEY` | *(blank)* | Resend auth; required when provider=resend |
+| `app.resend.from` | `RESEND_FROM` | `onboarding@resend.dev` | Sender address |
+| `app.admin.email` | `ADMIN_EMAIL` | `kabarentadmin@gmail.com` | Admin alert TO address (shared with admin seed) |
 
 ---
 
@@ -446,6 +514,8 @@ order_total = SUM(item_total for all items in order)
 ---
 
 ## 6. Implementation Roadmap
+
+> **Historical note:** The phases below are the original pre-code build plan, now mostly completed. They reflect the *intended* sequence, not the current state of the codebase. For an accurate AS-IS picture see `docs/CODEBASE_REVIEW_2026.md`, the root `README.md`, and `CLAUDE.md`.
 
 ### Phase 1 — Project Scaffolding
 1. Initialize Spring Boot project (Spring Initializr): Web, JPA, PostgreSQL driver, Validation, Lombok

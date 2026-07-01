@@ -52,7 +52,15 @@ Standard layered architecture: `Controller → Service → Repository → Postgr
 - `security/` — `SecurityConfig` filter chain (fail-closed), `JwtService`, `JwtAuthenticationFilter`, `CustomerUserDetailsService`, `CustomerPrincipal` (carries `customerId`)
 - `dto/request/` & `dto/response/` — API boundary DTOs (validation annotations on request DTOs)
 - `exception/` — `GlobalExceptionHandler` (@RestControllerAdvice) maps domain exceptions to HTTP status codes (incl. 401/403)
-- `config/` — `CorsConfig` (`CorsConfigurationSource` consumed by Spring Security), `SecurityConfig`, `DataInitializer` (seeds the admin user from env via `CommandLineRunner`)
+- `config/` — `CorsConfig` (`CorsConfigurationSource` consumed by Spring Security), `SecurityConfig`, `DataInitializer` (seeds the admin user from env via `CommandLineRunner`), `AsyncConfig` (defines the `notificationExecutor` thread pool, `@EnableAsync`)
+- `notification/` — channel-agnostic notification layer:
+  - `NotificationSender` (interface) · `NotificationRequest` / `NotificationRecipient` / `NotificationType` (channel-agnostic records/enum)
+  - `OrderCreatedEvent` (record published AFTER_COMMIT by `OrderService`)
+  - `CustomerOrderNotificationListener` — `@Async @TransactionalEventListener(AFTER_COMMIT)`; sends `ORDER_CREATED` to the customer
+  - `AdminOrderNotificationListener` — independent sibling listener; sends `ORDER_CREATED_ADMIN` to the fixed admin address (`app.admin.email`); fires even when the customer has no email
+  - `LoggingNotificationSender` — active when `app.notifications.provider=logging` (the default); logs to stdout, no external calls
+  - `ResendNotificationSender` — active when `app.notifications.provider=resend`; POSTs to the Resend HTTP API via `RestClient` (5 s timeouts); fails fast at startup if `RESEND_API_KEY` is blank; skips customers with no email gracefully; all send failures are caught and logged, never propagated
+  - `EmailLayout` — static `wrap(String innerHtml)` helper that renders the shared Cotton & Thread branded email shell (table-based, inline-hex only); each notification type supplies only its inner content
 
 **Authorization (Spring Security 6, stateless JWT) — fail closed (`anyRequest().authenticated()`):**
 - **Public:** `POST /api/auth/**`, `GET /api/kabas/**`.
@@ -78,6 +86,11 @@ Standard layered architecture: `Controller → Service → Repository → Postgr
 - **Order customer comes from the JWT:** placing an order (`POST /api/orders`, ROLE_CUSTOMER) attaches it to the authenticated customer (`CustomerPrincipal.getId()` → `CustomerService.findOrThrow`); no customer details are accepted from the request body, so a user cannot order under another person's phone. Guest ordering is disabled.
 - **Idempotent order creation:** `POST /api/orders` accepts an optional **`Idempotency-Key`** header; an `idempotency_records` row (DB-`UNIQUE` on the key) maps key → order id, so a retried/double-submitted checkout returns the original order instead of creating a duplicate. Race-safe via the unique constraint (on conflict, re-read and return the winner — no orphan order). A key longer than 64 chars → 400. The frontend sends a per-checkout-attempt `crypto.randomUUID()`, stable across retries and rotated only after a successful submit.
 - **Rate limiting (best-effort, in-memory, per-instance via bucket4j):** a shared `RateLimitInterceptor` registered per path in `WebConfig`; client key = `CF-Connecting-IP` → leftmost `X-Forwarded-For` → `getRemoteAddr` (Render behind Cloudflare; IP-spoofable, so best-effort only). `POST /api/orders` = **10/min + 100/hr**; `POST /api/auth/register` = **3/hr + 10/day** (stricter — the main public abuse surface after guest ordering was removed). On limit → **429** with a `Retry-After` header and the standard `{timestamp,status,error}` JSON. Configurable via `app.rate-limit.*` (env-overridable; `app.rate-limit.enabled` toggles it). `POST /api/auth/login` is **not** throttled yet (see Known Limitations).
+- **Notifications:** after an order is committed, `OrderService` publishes `OrderCreatedEvent` via `ApplicationEventPublisher`. Two independent `@Async("notificationExecutor") @TransactionalEventListener(AFTER_COMMIT)` listeners consume it in parallel on the `notif-*` thread pool (core 2, max 4). Each listener builds a `NotificationRequest` and calls `NotificationSender.send()`. The active sender is chosen by `app.notifications.provider` (`@ConditionalOnProperty`): `logging` (default, no external calls) or `resend` (Resend HTTP API). Config properties:
+  - `app.notifications.provider` = `${NOTIFICATIONS_PROVIDER:logging}` — default keeps all environments no-op until explicitly opted in
+  - `app.resend.api-key` = `${RESEND_API_KEY:}` — blank default; `ResendNotificationSender` fails fast at startup if this is blank and `provider=resend`
+  - `app.resend.from` = `${RESEND_FROM:onboarding@resend.dev}`
+  - `app.admin.email` = `${ADMIN_EMAIL:admin@kabarent.local}` — also the TO address for admin alerts (reuses the existing admin seed property)
 - Customers are **find-or-create by phone**: `CustomerService.findOrCreateByPhone` normalizes the phone to E.164 and returns the existing customer or creates a new one, avoiding `UNIQUE(phone)` violations. It now backs **admin customer creation** (`POST /api/customers`). Registering with a phone that has **no `passwordHash`** (e.g. a row admin entered) **upgrades that same row in place** (sets `passwordHash`, `role=CUSTOMER`), which auto-links any past orders on that row to the account. Registering a phone that already has a `passwordHash` → 409 (`PhoneAlreadyRegisteredException`).
 - **Customer self-cancel** (`POST /api/my/orders/{id}/cancel`) is restricted to **PENDING** orders only; CONFIRMED orders must be cancelled by admin. (Cancelling a PENDING order releases no inventory, since PENDING reserves none.)
 - Kabas use soft delete (`active` boolean); they remain in DB but are hidden from customer/active views.
@@ -143,6 +156,7 @@ Fonts: Plus Jakarta Sans (headings `h1`–`h6`), Inter (body, buttons, labels).
 - **No login rate limiting.** `POST /api/auth/login` is not throttled (brute-force/credential-stuffing risk) — unlike `POST /api/orders` and `POST /api/auth/register`, which are rate-limited (see *Key business rules*).
 - **No database indexes** beyond the `UNIQUE` constraints on `customers.phone` (and `customers.email` when present); date-overlap queries are unindexed.
 - No schema migration tool (e.g. Flyway/Liquibase); schema is managed by Hibernate `ddl-auto=update`, with one-off DDL applied manually for changes it can't make (see *Deployment & migrations*).
+- **`DataInitializer` is non-idempotent on `ADMIN_EMAIL` change.** It seeds the admin row on startup using the `ADMIN_EMAIL` env var. If that value changes between restarts, the old admin row persists and a second admin row is inserted — there is no update-in-place logic. Avoid changing `ADMIN_EMAIL` without a manual DB cleanup.
 
 ## Code Review Policy
 

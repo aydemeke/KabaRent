@@ -175,3 +175,35 @@ Table head (`.ds-table-head`):
 | `.ds-table-head` | Standardized table head row |
 | `.ds-label` | Muted uppercase section label |
 | `.ds-tibeb-band` | Gold/red tibeb motif band — **defined, not yet placed (Phase 4 planned)** |
+
+---
+
+## Email Templates
+
+Email templates follow Cotton & Thread visually but must use **table-based layout with inline hex colors only** — email clients (Gmail, Outlook) strip `<style>` blocks, ignore class names, and do not support Flexbox/Grid. Tailwind classes and CSS variables are not used in email HTML.
+
+### EmailLayout (shared shell)
+
+`EmailLayout.wrap(String innerHtml)` in `backend/.../notification/EmailLayout.java` renders the complete branded shell around any notification type's inner content:
+
+| Zone | Treatment |
+|---|---|
+| Page background | `#FDFBF5` (warm cream), 24 px vertical padding |
+| Header | "KabaRent" wordmark, **Plus Jakarta Sans → Arial fallback**, 24 px bold, `#1C7C49` (leaf green), centered |
+| Accent rule | 2 px solid `#FFC233` (gold), full width under the header |
+| Content card | `#FFFFFF` white, `border-radius: 8px`, 24 px inner padding |
+| Card text | `dir="rtl"`, right-aligned, Hebrew. Font: Arial (email-safe fallback for Plus Jakarta Sans). Body text `#1C1B16`, muted labels `#5A5443`, hairline dividers `#ECE4CB` |
+| Footer | "KabaRent — מערכת השכרת קבות", 12 px, `#5A5443`, centered |
+
+The container is 600 px wide, centered, `max-width: 100%` for mobile.
+
+### Content / shell separation
+
+Each notification type supplies **only the inner content** (greeting, details table, closing line) — `EmailLayout.wrap()` adds the shell. Adding a new email type means writing one content-builder method; the header, footer, and colors are inherited automatically.
+
+### Current types
+
+| Type | Recipient | Copy style |
+|---|---|---|
+| `ORDER_CREATED` | Customer | Hebrew RTL. Greeting by name, "הזמנתך התקבלה!" heading, details table (order id, event date, return date, total ₪), warm closing line. |
+| `ORDER_CREATED_ADMIN` | Admin (`app.admin.email`) | Hebrew, operational tone. "התקבלה הזמנה חדשה" heading, details table including **customer name + phone** (so the admin can act without opening the dashboard). No customer-facing "thank you" copy. |

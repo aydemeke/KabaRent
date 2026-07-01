@@ -29,8 +29,18 @@ KabaRent/
 │       ├── main/java/com/kabarent/
 │       │   ├── KabaRentApplication.java  # Application entry point
 │       │   ├── config/
+│       │   │   ├── AsyncConfig.java      # notificationExecutor thread pool + @EnableAsync
 │       │   │   ├── CorsConfig.java       # CORS rules (allows localhost:5173 + the Vercel origin)
 │       │   │   └── DataInitializer.java  # Seeds the admin user from env (ADMIN_EMAIL/ADMIN_PASSWORD)
+│       │   ├── notification/             # Channel-agnostic notification layer
+│       │   │   ├── NotificationSender.java            # Interface: send(NotificationRequest)
+│       │   │   ├── NotificationRequest/Recipient/Type # Channel-agnostic records + enum
+│       │   │   ├── OrderCreatedEvent.java             # Published AFTER_COMMIT by OrderService
+│       │   │   ├── CustomerOrderNotificationListener.java  # @Async @TransactionalEventListener
+│       │   │   ├── AdminOrderNotificationListener.java     # Independent sibling listener
+│       │   │   ├── LoggingNotificationSender.java     # Default (provider=logging): no-op log
+│       │   │   ├── ResendNotificationSender.java      # provider=resend: Resend HTTP API
+│       │   │   └── EmailLayout.java                   # Shared Cotton & Thread email shell
 │       │   ├── controller/               # REST controllers (one per resource)
 │       │   │   ├── KabaController.java
 │       │   │   ├── CustomerController.java
@@ -149,8 +159,20 @@ fallbacks exist in `application.properties`, but production must override them):
 | Variable | Purpose |
 |---|---|
 | `JWT_SECRET` | HMAC signing key for JWTs (≥ 32 bytes). |
-| `ADMIN_EMAIL` | Email of the admin account to seed (default `admin@kabarent.local`). The admin logs in by **email**. |
+| `ADMIN_EMAIL` | Email of the admin account to seed (default `admin@kabarent.local`). The admin logs in by **email**. Also used as the TO address for admin order-alert emails. |
 | `ADMIN_PASSWORD` | Admin password (local-dev default `12345678`, so the admin **is** seeded by default locally). Admin seeding is skipped only if this is blank. Override in production; no production password is committed. |
+
+### Notification configuration (optional)
+
+Notifications are **off by default** (provider = `logging`; all sends are no-ops that log to stdout). To enable real email via Resend:
+
+| Variable | Purpose |
+|---|---|
+| `NOTIFICATIONS_PROVIDER` | `logging` (default) or `resend`. Set to `resend` to enable outbound email. |
+| `RESEND_API_KEY` | Resend API key. Required when `NOTIFICATIONS_PROVIDER=resend`; the backend refuses to start if this is blank and provider is resend. |
+| `RESEND_FROM` | Sender address (default `onboarding@resend.dev` — Resend's test sender). Replace with a verified domain address before production use. |
+
+The admin alert destination is `ADMIN_EMAIL` (shared with the admin seed above).
 
 The **frontend** reads its API base URL from `VITE_API_URL` — `frontend/.env.local` for dev
 (`http://localhost:8080/api`, untracked) and the tracked `frontend/.env.production` for prod
@@ -275,6 +297,7 @@ The `customerId` is always derived from the JWT — never from the request.
 - **Real admin authentication** — Spring Security + JWT; the admin area requires a `ROLE_ADMIN` login
 - **Admin dashboard** — manages inventory, orders, customers, and payments
 - **Hebrew (RTL) customer portal** — including footer-linked info pages (about, FAQ, contact, terms, returns, privacy)
+- **Email notifications** — order-confirmation email sent to the customer after checkout; independent admin alert ("new order to handle") sent to the admin address. Provider is config-driven (`logging` by default — no external calls; set `NOTIFICATIONS_PROVIDER=resend` with a Resend API key to activate real sends). Both sends are async, transactional (fire only after the order commits), and failure-isolated from each other and from the order flow. Admin alert fires even when the customer has no email address (phone-only customers are valid).
 
 ---
 
@@ -302,6 +325,7 @@ The `customerId` is always derived from the JWT — never from the request.
 - **No login rate limiting.** `POST /api/auth/login` is not throttled, so it is exposed to credential brute-force/stuffing. (Backlog.)
 - **No schema migrations** (no Flyway/Liquibase); schema is driven by Hibernate `ddl-auto=update`, with one-off DDL applied manually for changes it can't make (see [Migrations](#migrations)).
 - **No database indexes** beyond the unique constraints on `customers.phone` (and `customers.email` when present).
+- **`DataInitializer` is non-idempotent on `ADMIN_EMAIL` change.** If `ADMIN_EMAIL` changes between restarts, a second admin row is inserted rather than updating the existing one. Avoid changing this value without a manual DB cleanup.
 - Kaba images are referenced by URL/static path; there is no server-side image upload.
 
 ---
@@ -315,7 +339,7 @@ The `customerId` is always derived from the JWT — never from the request.
 - [x] Move DB credentials to environment variables / secrets
 - [ ] Introduce schema migrations (Flyway or Liquibase)
 - [ ] Add indexes for date-overlap availability queries
-- [ ] Add SMS / email notifications for order confirmation
+- [x] Add email notifications for order confirmation (customer + admin alert, provider-driven, Resend integration)
 - [ ] Support server-side image upload (currently static paths)
 - [ ] Add reporting and revenue summary to the admin dashboard
 
