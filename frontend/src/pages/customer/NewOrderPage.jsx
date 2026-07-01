@@ -43,7 +43,7 @@ export default function NewOrderPage() {
 
   const [kabas, setKabas] = useState([])
   const [kabaId, setKabaId] = useState(searchParams.get('kabaId') || '')
-  const [eventDate, setEventDate] = useState(searchParams.get('eventDate') || today)
+  const [eventDate, setEventDate] = useState(searchParams.get('eventDate') || '')
   const [returnDate, setReturnDate] = useState(searchParams.get('returnDate') || '')
   const [availability, setAvailability] = useState(null)
   const [quantity, setQuantity] = useState(1)
@@ -161,7 +161,6 @@ export default function NewOrderPage() {
                 min={today}
                 required
                 onChange={e => setEventDate(e.target.value)}
-                onFocus={() => setEventDate('')}
                 className="w-full"
               />
             </div>
