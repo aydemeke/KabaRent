@@ -24,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
@@ -58,6 +59,7 @@ class OrderServiceTest {
     @Mock private AvailabilityService availabilityService;
     @Mock private KabaRepository kabaRepository;
     @Mock private IdempotencyRecordRepository idempotencyRecordRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private ObjectProvider<OrderService> self;
     @InjectMocks private OrderService orderService;
 

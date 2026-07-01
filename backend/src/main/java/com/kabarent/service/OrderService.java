@@ -11,8 +11,10 @@ import com.kabarent.model.enums.OrderStatus;
 import com.kabarent.repository.IdempotencyRecordRepository;
 import com.kabarent.repository.KabaRepository;
 import com.kabarent.repository.OrderRepository;
+import com.kabarent.notification.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ public class OrderService {
     private final AvailabilityService availabilityService;
     private final KabaRepository kabaRepository;
     private final IdempotencyRecordRepository idempotencyRecordRepository;
+    private final ApplicationEventPublisher eventPublisher;
     /**
      * Self-reference used to invoke {@link #createWithIdempotency} / {@link #create(CreateOrderRequest)}
      * through the Spring proxy. A plain {@code this.} call would be self-invocation and bypass the
@@ -97,12 +100,15 @@ public class OrderService {
                 .idempotencyKey(idempotencyKey)
                 .orderId(order.getId())
                 .build());
+        eventPublisher.publishEvent(OrderCreatedEvent.from(order));
         return OrderResponse.from(order);
     }
 
     @Transactional
     public OrderResponse create(CreateOrderRequest request, Long customerId) {
-        return OrderResponse.from(persistNewOrder(request, customerId));
+        Order order = persistNewOrder(request, customerId);
+        eventPublisher.publishEvent(OrderCreatedEvent.from(order));
+        return OrderResponse.from(order);
     }
 
     /** Builds and persists a new order (shared by the plain and idempotent create paths). */
