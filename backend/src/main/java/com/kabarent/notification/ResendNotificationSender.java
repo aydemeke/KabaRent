@@ -56,14 +56,23 @@ public class ResendNotificationSender implements NotificationSender {
             return;
         }
 
-        if (request.type() != NotificationType.ORDER_CREATED) {
-            log.warn("ResendNotificationSender has no template for notification type {}", request.type());
-            return;
-        }
-
         try {
-            String subject = buildOrderCreatedSubject(request.payload());
-            String html = EmailLayout.wrap(buildOrderCreatedContent(recipient, request.payload()));
+            String subject;
+            String html;
+            switch (request.type()) {
+                case ORDER_CREATED -> {
+                    subject = buildOrderCreatedSubject(request.payload());
+                    html = EmailLayout.wrap(buildOrderCreatedContent(recipient, request.payload()));
+                }
+                case ORDER_CREATED_ADMIN -> {
+                    subject = buildAdminOrderCreatedSubject(request.payload());
+                    html = EmailLayout.wrap(buildAdminOrderCreatedContent(request.payload()));
+                }
+                default -> {
+                    log.warn("ResendNotificationSender has no template for notification type {}", request.type());
+                    return;
+                }
+            }
 
             Map<String, Object> body = Map.of(
                     "from", from,
@@ -88,6 +97,49 @@ public class ResendNotificationSender implements NotificationSender {
             log.error("Unexpected error sending {} email to {} for order #{}: {}",
                     request.type(), recipient.email(), request.payload().get("orderId"), e.getMessage(), e);
         }
+    }
+
+    private String buildAdminOrderCreatedSubject(Map<String, String> payload) {
+        return "הזמנה חדשה #" + payload.get("orderId") + " - דורשת טיפול";
+    }
+
+    private String buildAdminOrderCreatedContent(Map<String, String> payload) {
+        return """
+                <h2 style="margin:0 0 16px 0; font-size:20px; color:#1C7C49;">התקבלה הזמנה חדשה</h2>
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; margin-bottom:16px;">
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">מספר הזמנה</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">לקוח</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">טלפון</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">תאריך אירוע</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#5A5443;">תאריך החזרה</td>
+                    <td style="padding:8px 0; border-bottom:1px solid #ECE4CB; color:#1C1B16; text-align:left;">%s</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0; color:#5A5443;">סכום כולל</td>
+                    <td style="padding:8px 0; color:#1C1B16; text-align:left;">%s ₪</td>
+                  </tr>
+                </table>
+                """.formatted(
+                payload.get("orderId"),
+                payload.get("customerName"),
+                payload.get("customerPhone"),
+                payload.get("eventDate"),
+                payload.get("returnDate"),
+                payload.get("totalPrice")
+        );
     }
 
     private String buildOrderCreatedSubject(Map<String, String> payload) {

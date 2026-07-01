@@ -10,13 +10,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.util.Map;
 
 @Component
-public class NotificationEventListener {
+public class CustomerOrderNotificationListener {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationEventListener.class);
+    private static final Logger log = LoggerFactory.getLogger(CustomerOrderNotificationListener.class);
 
     private final NotificationSender notificationSender;
 
-    public NotificationEventListener(NotificationSender notificationSender) {
+    public CustomerOrderNotificationListener(NotificationSender notificationSender) {
         this.notificationSender = notificationSender;
     }
 
